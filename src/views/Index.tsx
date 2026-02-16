@@ -237,7 +237,7 @@ const Index = () => {
           />
 
           <main className="container mx-auto px-4 py-8">
-            <AnnouncementBanner />
+            {viewMode === "active" && <AnnouncementBanner />}
             <Tabs
               value={activeTab}
               onValueChange={(v) => setActiveTab(v as "pallets" | "lots")}
