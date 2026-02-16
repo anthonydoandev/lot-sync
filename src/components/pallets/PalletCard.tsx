@@ -2,6 +2,11 @@ import { memo } from "react";
 import { Pallet } from "@/types/database.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Pencil, Archive, Trash2 } from "lucide-react";
 import { formatDate } from "@/utils/formatting";
 
@@ -62,43 +67,63 @@ export const PalletCard = memo(function PalletCard({
       <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         {!isHistory ? (
           <>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onEdit(pallet)}
-              className="h-8 w-8 hover:bg-primary/15 hover:text-primary"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onEdit(pallet)}
+                  className="h-8 w-8 hover:bg-primary/15 hover:text-primary"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
             {!isMisc && (
               <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => onRetire(pallet.id)}
-                  className="h-8 w-8 text-accent hover:bg-accent/20"
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => onDelete(pallet.id)}
-                  className="h-8 w-8 text-destructive hover:bg-destructive/20"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => onRetire(pallet.id)}
+                      className="h-8 w-8 text-accent hover:bg-accent/20"
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Retire</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => onDelete(pallet.id)}
+                      className="h-8 w-8 text-destructive hover:bg-destructive/20"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete</TooltipContent>
+                </Tooltip>
               </>
             )}
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onUnretire(pallet.id)}
-          >
-            Unretire
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onUnretire(pallet.id)}
+              >
+                Unretire
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Restore pallet</TooltipContent>
+          </Tooltip>
         )}
       </div>
 

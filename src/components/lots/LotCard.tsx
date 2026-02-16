@@ -2,6 +2,11 @@ import { memo } from "react";
 import { LotWithWorkers } from "@/hooks/useLots";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Pencil, Archive, Trash2, UserPlus, UserMinus } from "lucide-react";
 import { formatDate } from "@/utils/formatting";
 
@@ -65,61 +70,89 @@ export const LotCard = memo(function LotCard({
         {!isHistory &&
           currentUserId &&
           (isWorker ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onLeave?.(lot.id)}
-              className="h-8 w-8 text-orange-500 hover:bg-orange-500/20"
-              title="Leave lot"
-            >
-              <UserMinus className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onLeave?.(lot.id)}
+                  className="h-8 w-8 text-orange-500 hover:bg-orange-500/20"
+                >
+                  <UserMinus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Leave lot</TooltipContent>
+            </Tooltip>
           ) : (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onJoin?.(lot.id)}
-              className="h-8 w-8 text-green-600 hover:bg-green-600/20"
-              title="Join lot"
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onJoin?.(lot.id)}
+                  className="h-8 w-8 text-green-600 hover:bg-green-600/20"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Join lot</TooltipContent>
+            </Tooltip>
           ))}
         {!isHistory ? (
           <>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onEdit(lot)}
-              className="h-8 w-8 hover:bg-primary/15 hover:text-primary"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onRetire(lot.id)}
-              className="h-8 w-8 text-accent hover:bg-accent/20"
-            >
-              <Archive className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => onDelete(lot.id)}
-              className="h-8 w-8 text-destructive hover:bg-destructive/20"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onEdit(lot)}
+                  className="h-8 w-8 hover:bg-primary/15 hover:text-primary"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onRetire(lot.id)}
+                  className="h-8 w-8 text-accent hover:bg-accent/20"
+                >
+                  <Archive className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Retire</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onDelete(lot.id)}
+                  className="h-8 w-8 text-destructive hover:bg-destructive/20"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete</TooltipContent>
+            </Tooltip>
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onUnretire(lot.id)}
-          >
-            Unretire
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onUnretire(lot.id)}
+              >
+                Unretire
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Restore lot</TooltipContent>
+          </Tooltip>
         )}
       </div>
 
