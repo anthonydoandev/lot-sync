@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Pallet, Lot } from "@/types/database.types";
 import { LotWithWorkers } from "@/hooks/useLots";
+import { groupByRetiredMonth, groupByIO } from "@/utils/formatting";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -76,6 +77,28 @@ const Index = () => {
     activeTab === "pallets" ? palletSearchQuery : lotSearchQuery;
   const setSearchQuery =
     activeTab === "pallets" ? setPalletSearchQuery : setLotSearchQuery;
+
+  // Group history items by retired month
+  const palletMonthGroups = useMemo(
+    () => (viewMode === "history" ? groupByRetiredMonth(filteredPallets) : []),
+    [viewMode, filteredPallets]
+  );
+  const lotMonthGroups = useMemo(
+    () =>
+      viewMode === "history"
+        ? groupByRetiredMonth(filteredLots).map((month) => ({
+            ...month,
+            ioGroups: groupByIO(month.items),
+          }))
+        : [],
+    [viewMode, filteredLots]
+  );
+
+  // Group active lots by IO
+  const activeLotIOGroups = useMemo(
+    () => (viewMode === "active" ? groupByIO(filteredLots) : []),
+    [viewMode, filteredLots]
+  );
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -315,24 +338,41 @@ const Index = () => {
                     )}
                   </div>
                 ) : viewMode === "history" ? (
-                  <div className="flex flex-col gap-2">
-                    {filteredPallets.map((pallet) => (
-                      <PalletCard
-                        key={pallet.id}
-                        pallet={pallet}
-                        onEdit={(p) => {
-                          setEditingPallet(p);
-                          setPalletModalOpen(true);
-                        }}
-                        onRetire={retirePallet}
-                        onUnretire={unretirePallet}
-                        onDelete={(id) => {
-                          setDeletingId(id);
-                          setDeletingType("pallet");
-                          setDeleteDialogOpen(true);
-                        }}
-                        isHistory={true}
-                      />
+                  <div className="space-y-10">
+                    {palletMonthGroups.map((group) => (
+                      <div
+                        key={group.label}
+                        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                      >
+                        <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
+                          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                            {group.label}
+                          </h2>
+                          <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                            {group.items.length}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {group.items.map((pallet) => (
+                            <PalletCard
+                              key={pallet.id}
+                              pallet={pallet}
+                              onEdit={(p) => {
+                                setEditingPallet(p);
+                                setPalletModalOpen(true);
+                              }}
+                              onRetire={retirePallet}
+                              onUnretire={unretirePallet}
+                              onDelete={(id) => {
+                                setDeletingId(id);
+                                setDeletingType("pallet");
+                                setDeleteDialogOpen(true);
+                              }}
+                              isHistory={true}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -412,28 +452,104 @@ const Index = () => {
                       </Button>
                     )}
                   </div>
+                ) : viewMode === "history" ? (
+                  <div className="space-y-10">
+                    {lotMonthGroups.map((month) => (
+                      <div
+                        key={month.label}
+                        className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                      >
+                        <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
+                          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                            {month.label}
+                          </h2>
+                          <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                            {month.items.length}
+                          </span>
+                        </div>
+                        <div className="space-y-6 pl-4">
+                          {month.ioGroups.map((ioGroup) => (
+                            <div key={ioGroup.label} className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                                  {ioGroup.label === "No IO"
+                                    ? ioGroup.label
+                                    : `IO-${ioGroup.label}`}
+                                </h3>
+                                <span className="text-xs font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                                  {ioGroup.items.length}
+                                </span>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                {ioGroup.items.map((lot) => (
+                                  <LotCard
+                                    key={lot.id}
+                                    lot={lot}
+                                    onEdit={(l) => {
+                                      setEditingLot(l);
+                                      setLotModalOpen(true);
+                                    }}
+                                    onRetire={retireLot}
+                                    onUnretire={unretireLot}
+                                    onDelete={(id) => {
+                                      setDeletingId(id);
+                                      setDeletingType("lot");
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    isHistory={true}
+                                    currentUserId={user?.id}
+                                    onJoin={handleJoinLot}
+                                    onLeave={handleLeaveLot}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    {filteredLots.map((lot) => (
-                      <LotCard
-                        key={lot.id}
-                        lot={lot}
-                        onEdit={(l) => {
-                          setEditingLot(l);
-                          setLotModalOpen(true);
-                        }}
-                        onRetire={retireLot}
-                        onUnretire={unretireLot}
-                        onDelete={(id) => {
-                          setDeletingId(id);
-                          setDeletingType("lot");
-                          setDeleteDialogOpen(true);
-                        }}
-                        isHistory={viewMode === "history"}
-                        currentUserId={user?.id}
-                        onJoin={handleJoinLot}
-                        onLeave={handleLeaveLot}
-                      />
+                  <div className="space-y-10">
+                    {activeLotIOGroups.map((ioGroup) => (
+                      <div
+                        key={ioGroup.label}
+                        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                      >
+                        <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
+                          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                            {ioGroup.label === "No IO"
+                              ? ioGroup.label
+                              : `IO-${ioGroup.label}`}
+                          </h2>
+                          <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                            {ioGroup.items.length}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {ioGroup.items.map((lot) => (
+                            <LotCard
+                              key={lot.id}
+                              lot={lot}
+                              onEdit={(l) => {
+                                setEditingLot(l);
+                                setLotModalOpen(true);
+                              }}
+                              onRetire={retireLot}
+                              onUnretire={unretireLot}
+                              onDelete={(id) => {
+                                setDeletingId(id);
+                                setDeletingType("lot");
+                                setDeleteDialogOpen(true);
+                              }}
+                              isHistory={false}
+                              currentUserId={user?.id}
+                              onJoin={handleJoinLot}
+                              onLeave={handleLeaveLot}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
