@@ -1,6 +1,3 @@
-import driveTypesImg from "@/assets/storage/different-type-of-drives.png";
-import m2SizesImg from "@/assets/storage/m2-sizes.png";
-
 const StorageIdentificationSection = () => {
   return (
     <article className="prose prose-slate dark:prose-invert max-w-none">
@@ -12,8 +9,10 @@ const StorageIdentificationSection = () => {
       <hr className="my-8" />
 
       {/* Interfaces & Protocols */}
-      <h2 className="text-xl font-semibold mt-8 mb-4">Interfaces & Protocols</h2>
-      
+      <h2 className="text-xl font-semibold mt-8 mb-4">
+        Interfaces & Protocols
+      </h2>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {/* SATA HDD */}
         <div className="border rounded-lg p-4 bg-card">
@@ -58,9 +57,9 @@ const StorageIdentificationSection = () => {
       </div>
 
       <div className="my-6">
-        <img 
-          src={driveTypesImg} 
-          alt="Different types of storage drives showing internal components" 
+        <img
+          src="/storage/different-type-of-drives.png"
+          alt="Different types of storage drives showing internal components"
           className="rounded-lg border w-full"
         />
       </div>
@@ -83,7 +82,9 @@ const StorageIdentificationSection = () => {
             <tr className="border-t">
               <td className="p-3 font-medium">3.5-inch</td>
               <td className="p-3">Larger HDDs, higher capacity</td>
-              <td className="p-3 text-muted-foreground">Desktops, data centers</td>
+              <td className="p-3 text-muted-foreground">
+                Desktops, data centers
+              </td>
             </tr>
             <tr className="border-t">
               <td className="p-3 font-medium">2.5-inch</td>
@@ -93,12 +94,13 @@ const StorageIdentificationSection = () => {
             <tr className="border-t">
               <td className="p-3 font-medium">M.2</td>
               <td className="p-3">Ultra-thin SSD modules</td>
-              <td className="p-3 text-muted-foreground">Modern laptops/desktops</td>
+              <td className="p-3 text-muted-foreground">
+                Modern laptops/desktops
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-
 
       <h3 className="text-lg font-semibold mt-8 mb-4">M.2 Sizes</h3>
       <p className="text-muted-foreground mb-4">
@@ -145,9 +147,9 @@ const StorageIdentificationSection = () => {
       </div>
 
       <div className="my-6">
-        <img 
-          src={m2SizesImg} 
-          alt="M.2 SSD sizes comparison showing 2230, 2242, 2260, 2280, and 22110 form factors" 
+        <img
+          src="/storage/m2-sizes.png"
+          alt="M.2 SSD sizes comparison showing 2230, 2242, 2260, 2280, and 22110 form factors"
           className="rounded-lg border w-full"
         />
       </div>

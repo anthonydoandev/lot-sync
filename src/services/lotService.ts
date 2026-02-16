@@ -19,17 +19,21 @@ export const lotService = {
     return data || [];
   },
 
-  addLot: async (data: Partial<Lot>): Promise<boolean> => {
-    const { error } = await supabase.from("lots").insert([data as any]);
+  addLot: async (data: Partial<Lot>): Promise<Lot | null> => {
+    const { data: inserted, error } = await supabase
+      .from("lots")
+      .insert([data as any])
+      .select()
+      .single();
 
     if (error) {
       toast.error("Failed to add lot");
       console.error(error);
-      return false;
+      return null;
     }
 
     toast.success("Lot added successfully");
-    return true;
+    return inserted;
   },
 
   updateLot: async (id: string, data: Partial<Lot>): Promise<boolean> => {
@@ -100,7 +104,7 @@ export const lotService = {
           schema: "public",
           table: "lots",
         },
-        callback
+        callback,
       )
       .subscribe();
 

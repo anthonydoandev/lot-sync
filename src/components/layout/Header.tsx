@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, BookOpen, LogOut, Package } from "lucide-react";
@@ -19,7 +19,7 @@ export const Header = memo(function Header({
   setSearchQuery,
   onLogout,
 }: HeaderProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <header className="border-b bg-card/95 backdrop-blur-sm sticky top-0 z-50">
@@ -67,7 +67,7 @@ export const Header = memo(function Header({
               />
             </div>
             <Button
-              onClick={() => navigate("/manual")}
+              onClick={() => router.push("/manual")}
               variant="ghost"
               size="sm"
               className="flex-shrink-0"

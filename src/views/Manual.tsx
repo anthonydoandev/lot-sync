@@ -1,15 +1,24 @@
 import { useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Keyboard, Monitor, Cpu, MemoryStick, HardDrive } from "lucide-react";
+import {
+  ArrowLeft,
+  Keyboard,
+  Monitor,
+  Cpu,
+  MemoryStick,
+  HardDrive,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import RamIdentificationSection from "@/components/manual/RamIdentificationSection";
 import StorageIdentificationSection from "@/components/manual/StorageIdentificationSection";
 
 // Lazy load the CPU stickers section (large SVG assets)
-const CpuStickersSection = lazy(() => import("@/components/manual/CpuStickersSection"));
+const CpuStickersSection = lazy(
+  () => import("@/components/manual/CpuStickersSection"),
+);
 
 const CpuStickersFallback = () => (
   <div className="space-y-6">
@@ -39,7 +48,7 @@ const sections = [
 ];
 
 const Manual = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<Section>("bios-keys");
 
   return (
@@ -48,7 +57,7 @@ const Manual = () => {
       <aside className="w-64 border-r bg-card/50 flex-shrink-0 hidden md:block">
         <div className="p-4 border-b">
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => router.push("/")}
             variant="ghost"
             size="sm"
             className="w-full justify-start"
@@ -67,7 +76,7 @@ const Manual = () => {
                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2",
                   activeSection === section.id
                     ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
                 )}
               >
                 <section.icon className="h-4 w-4" />
@@ -81,7 +90,7 @@ const Manual = () => {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 border-b bg-card p-4">
         <div className="flex items-center gap-2">
-          <Button onClick={() => navigate("/")} variant="ghost" size="icon">
+          <Button onClick={() => router.push("/")} variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <select
@@ -135,73 +144,129 @@ const BiosKeysSection = () => (
         <tbody>
           <tr className="border-t">
             <td className="p-3 font-medium">Dell</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code></td>
-            <td className="p-3 text-muted-foreground">Press repeatedly on startup</td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code>
+            </td>
+            <td className="p-3 text-muted-foreground">
+              Press repeatedly on startup
+            </td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">HP</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F10</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F9</code></td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F10</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F9</code>
+            </td>
             <td className="p-3 text-muted-foreground">ESC for startup menu</td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">Lenovo</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F1</code> / <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code></td>
-            <td className="p-3 text-muted-foreground">ThinkPad: Enter then F1</td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F1</code> /{" "}
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code>
+            </td>
+            <td className="p-3 text-muted-foreground">
+              ThinkPad: Enter then F1
+            </td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">Panasonic (Toughbook/Toughpad)</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> / <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> / <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code></td>
-            <td className="p-3 text-muted-foreground">Older: Del; Newer: F2; Press early or hold longer</td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> /{" "}
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> /{" "}
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code>
+            </td>
+            <td className="p-3 text-muted-foreground">
+              Older: Del; Newer: F2; Press early or hold longer
+            </td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">Acer</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> / <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code></td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> /{" "}
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code>
+            </td>
             <td className="p-3 text-muted-foreground">—</td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">ASUS</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> / <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F8</code></td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code> /{" "}
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F8</code>
+            </td>
             <td className="p-3 text-muted-foreground">—</td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">MSI</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F11</code></td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">Del</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F11</code>
+            </td>
             <td className="p-3 text-muted-foreground">—</td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">Samsung</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code> / <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code></td>
-            <td className="p-3 text-muted-foreground">Older models may use F10</td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code>{" "}
+              / <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code>
+            </td>
+            <td className="p-3 text-muted-foreground">
+              Older models may use F10
+            </td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">Toshiba</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code></td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F2</code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">F12</code>
+            </td>
             <td className="p-3 text-muted-foreground">—</td>
           </tr>
           <tr className="border-t">
             <td className="p-3 font-medium">Microsoft Surface</td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">Vol Up + Power</code></td>
-            <td className="p-3"><code className="bg-muted px-2 py-0.5 rounded text-xs">Hold Vol Down + Power</code></td>
-            <td className="p-3 text-muted-foreground">Release when logo appears</td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">
+                Vol Up + Power
+              </code>
+            </td>
+            <td className="p-3">
+              <code className="bg-muted px-2 py-0.5 rounded text-xs">
+                Hold Vol Down + Power
+              </code>
+            </td>
+            <td className="p-3 text-muted-foreground">
+              Release when logo appears
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </article>
 );
-
-import optiplex1 from "@/assets/optiplex/optiplex-1.png";
-import optiplex2 from "@/assets/optiplex/optiplex-2.png";
-import optiplex3 from "@/assets/optiplex/optiplex-3.png";
 
 const OptiplexSection = () => (
   <article className="prose prose-slate dark:prose-invert max-w-none">
@@ -210,9 +275,9 @@ const OptiplexSection = () => (
     <div className="space-y-6">
       <div className="rounded-lg border bg-card overflow-hidden">
         <div className="p-4 flex justify-center bg-white">
-          <img 
-            src={optiplex1} 
-            alt="Dell Optiplex form factors: Tower, SFF, Micro, USFF" 
+          <img
+            src="/optiplex/optiplex-1.png"
+            alt="Dell Optiplex form factors: Tower, SFF, Micro, USFF"
             className="max-w-full h-auto"
           />
         </div>
@@ -220,9 +285,9 @@ const OptiplexSection = () => (
 
       <div className="rounded-lg border bg-card overflow-hidden">
         <div className="p-4 flex justify-center bg-white">
-          <img 
-            src={optiplex2} 
-            alt="Dell Optiplex form factors: Tower, Desktop, SFF, USFF" 
+          <img
+            src="/optiplex/optiplex-2.png"
+            alt="Dell Optiplex form factors: Tower, Desktop, SFF, USFF"
             className="max-w-full h-auto"
           />
         </div>
@@ -230,9 +295,9 @@ const OptiplexSection = () => (
 
       <div className="rounded-lg border bg-card overflow-hidden">
         <div className="p-4 flex justify-center bg-white">
-          <img 
-            src={optiplex3} 
-            alt="Dell Optiplex form factors: Tower, Desktop, SFF, USFF" 
+          <img
+            src="/optiplex/optiplex-3.png"
+            alt="Dell Optiplex form factors: Tower, Desktop, SFF, USFF"
             className="max-w-full h-auto"
           />
         </div>

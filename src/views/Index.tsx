@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Pallet, Lot } from "@/types/database.types";
+import { LotWithWorkers } from "@/hooks/useLots";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -25,8 +26,8 @@ import { LotCard, LotModal } from "@/components/lots";
 import { AnnouncementBanner } from "@/components/announcements";
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
+  const { user, profile, loading, signOut } = useAuth();
 
   // View state
   const [viewMode, setViewMode] = useState<"active" | "history">("active");
@@ -37,7 +38,7 @@ const Index = () => {
   const [palletModalOpen, setPalletModalOpen] = useState(false);
   const [lotModalOpen, setLotModalOpen] = useState(false);
   const [editingPallet, setEditingPallet] = useState<Pallet | null>(null);
-  const [editingLot, setEditingLot] = useState<Lot | null>(null);
+  const [editingLot, setEditingLot] = useState<LotWithWorkers | null>(null);
 
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -66,18 +67,22 @@ const Index = () => {
     retireLot,
     unretireLot,
     deleteLot,
+    joinLot,
+    leaveLot,
   } = useLots(viewMode, !!user);
 
   // Combined search query
-  const searchQuery = activeTab === "pallets" ? palletSearchQuery : lotSearchQuery;
-  const setSearchQuery = activeTab === "pallets" ? setPalletSearchQuery : setLotSearchQuery;
+  const searchQuery =
+    activeTab === "pallets" ? palletSearchQuery : lotSearchQuery;
+  const setSearchQuery =
+    activeTab === "pallets" ? setPalletSearchQuery : setLotSearchQuery;
 
   // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      router.push("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, router]);
 
   // Handlers
   const handleAddPallet = async (data: Partial<Pallet>) => {
@@ -105,11 +110,19 @@ const Index = () => {
   };
 
   const handleAddLot = async (data: Partial<Lot>) => {
-    const success = await addLot(data);
+    const success = await addLot(data, user?.id);
     if (success) {
       setLotModalOpen(false);
       setActiveTab("lots");
     }
+  };
+
+  const handleJoinLot = async (lotId: string) => {
+    if (user) await joinLot(lotId, user.id);
+  };
+
+  const handleLeaveLot = async (lotId: string) => {
+    if (user) await leaveLot(lotId, user.id);
   };
 
   const handleEditLot = async (data: Partial<Lot>) => {
@@ -130,7 +143,7 @@ const Index = () => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/auth");
+    router.push("/auth");
   };
 
   // Loading state - skeleton
@@ -202,7 +215,10 @@ const Index = () => {
 
           <main className="container mx-auto px-4 py-8">
             <AnnouncementBanner />
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "pallets" | "lots")}>
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as "pallets" | "lots")}
+            >
               <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <TabsList>
                   <TabsTrigger value="pallets" className="gap-2">
@@ -218,7 +234,11 @@ const Index = () => {
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                   {activeTab === "pallets" && (
                     <Button
-                      onClick={() => setPalletViewMode(palletViewMode === "card" ? "list" : "card")}
+                      onClick={() =>
+                        setPalletViewMode(
+                          palletViewMode === "card" ? "list" : "card",
+                        )
+                      }
                       variant="outline"
                       size="sm"
                       className="flex-shrink-0"
@@ -272,9 +292,13 @@ const Index = () => {
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-muted/70 mb-4">
                       <Package className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <p className="text-xl text-muted-foreground">No pallets found</p>
+                    <p className="text-xl text-muted-foreground">
+                      No pallets found
+                    </p>
                     <p className="text-base text-muted-foreground/70 mt-1">
-                      {viewMode === "active" ? "Add your first pallet to get started" : "No archived pallets yet"}
+                      {viewMode === "active"
+                        ? "Add your first pallet to get started"
+                        : "No archived pallets yet"}
                     </p>
                     {viewMode === "active" && (
                       <Button
@@ -315,7 +339,8 @@ const Index = () => {
                   <div className="space-y-10">
                     {CATEGORY_ORDER.map((category) => {
                       const categoryPallets = categorizedPallets[category];
-                      if (!categoryPallets || categoryPallets.length === 0) return null;
+                      if (!categoryPallets || categoryPallets.length === 0)
+                        return null;
 
                       return (
                         <div
@@ -365,9 +390,13 @@ const Index = () => {
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-muted/70 mb-4">
                       <Box className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <p className="text-xl text-muted-foreground">No lots found</p>
+                    <p className="text-xl text-muted-foreground">
+                      No lots found
+                    </p>
                     <p className="text-base text-muted-foreground/70 mt-1">
-                      {viewMode === "active" ? "Add your first lot to get started" : "No archived lots yet"}
+                      {viewMode === "active"
+                        ? "Add your first lot to get started"
+                        : "No archived lots yet"}
                     </p>
                     {viewMode === "active" && (
                       <Button
@@ -401,6 +430,9 @@ const Index = () => {
                           setDeleteDialogOpen(true);
                         }}
                         isHistory={viewMode === "history"}
+                        currentUserId={user?.id}
+                        onJoin={handleJoinLot}
+                        onLeave={handleLeaveLot}
                       />
                     ))}
                   </div>
@@ -437,15 +469,20 @@ const Index = () => {
             <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
               <AlertTriangle className="h-6 w-6 text-destructive" />
             </div>
-            <AlertDialogTitle className="text-center">Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-center">
+              Are you sure?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-center">
-              This action cannot be undone. This will permanently delete the {deletingType}.
+              This action cannot be undone. This will permanently delete the{" "}
+              {deletingType}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-center">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={deletingType === "pallet" ? handleDeletePallet : handleDeleteLot}
+              onClick={
+                deletingType === "pallet" ? handleDeletePallet : handleDeleteLot
+              }
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
