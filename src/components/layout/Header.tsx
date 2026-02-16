@@ -1,27 +1,29 @@
+"use client";
+
 import { memo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, BookOpen, LogOut, Package } from "lucide-react";
+import { BookOpen, LogOut, Package, Box } from "lucide-react";
 
 interface HeaderProps {
-  viewMode: "active" | "history";
-  setViewMode: (mode: "active" | "history") => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
   onLogout: () => void;
   displayName?: string;
 }
 
 export const Header = memo(function Header({
-  viewMode,
-  setViewMode,
-  searchQuery,
-  setSearchQuery,
   onLogout,
   displayName,
 }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const segments = pathname.split("/").filter(Boolean);
+  const status = segments[0] === "history" ? "history" : "active";
+  const resource = segments[1] === "lots" ? "lots" : "pallets";
+
+  const navigateTo = (newStatus: string, newResource: string) => {
+    router.push(`/${newStatus}/${newResource}`);
+  };
 
   return (
     <header className="border-b bg-card/95 backdrop-blur-sm sticky top-0 z-50">
@@ -35,9 +37,9 @@ export const Header = memo(function Header({
             </div>
             <div className="flex rounded-lg border bg-muted p-0.5">
               <button
-                onClick={() => setViewMode("active")}
+                onClick={() => navigateTo("active", resource)}
                 className={`px-5 py-2 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === "active"
+                  status === "active"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -45,14 +47,38 @@ export const Header = memo(function Header({
                 Active
               </button>
               <button
-                onClick={() => setViewMode("history")}
+                onClick={() => navigateTo("history", resource)}
                 className={`px-5 py-2 text-sm font-medium rounded-md transition-colors ${
-                  viewMode === "history"
+                  status === "history"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 History
+              </button>
+            </div>
+            <div className="flex rounded-lg border bg-muted p-0.5">
+              <button
+                onClick={() => navigateTo(status, "pallets")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                  resource === "pallets"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Package className="h-3.5 w-3.5" />
+                Pallets
+              </button>
+              <button
+                onClick={() => navigateTo(status, "lots")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                  resource === "lots"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Box className="h-3.5 w-3.5" />
+                Lots
               </button>
             </div>
           </div>
@@ -67,15 +93,6 @@ export const Header = memo(function Header({
             >
               <BookOpen className="h-5 w-5" />
             </Button>
-            <div className="relative flex-1 sm:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by number..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10"
-              />
-            </div>
             {displayName && (
               <span className="text-base font-medium text-foreground">
                 {displayName}

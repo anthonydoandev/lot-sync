@@ -1,7 +1,5 @@
-"use client";
-
-import Index from "@/views/Index";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return <Index />;
+  redirect("/active/pallets");
 }
