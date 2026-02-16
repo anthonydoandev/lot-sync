@@ -964,10 +964,8 @@ async function handleCreateLot() {
       return;
     }
 
-    const lotPagePattern =
-      /^https:\/\/secureitad\.razorerp\.com\/recycling\?.*lotId=/;
-    if (!lotPagePattern.test(tab.url)) {
-      showCreateLotStatus("Navigate to a Razor ERP lot page first", true);
+    if (!tab.url.includes("razorerp.com")) {
+      showCreateLotStatus("Navigate to a Razor ERP page first", true);
       return;
     }
 
