@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,18 @@ export function AnnouncementBanner() {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, []);
+
+  useEffect(() => {
+    if (isEditing) autoResize();
+  }, [isEditing, autoResize]);
 
   useEffect(() => {
     fetchAnnouncement();
@@ -90,10 +102,14 @@ export function AnnouncementBanner() {
     return (
       <div className="mb-4 p-4 rounded-lg border border-l-4 border-l-accent bg-accent/5">
         <Textarea
+          ref={textareaRef}
           value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
+          onChange={(e) => {
+            setEditContent(e.target.value);
+            autoResize();
+          }}
           placeholder="Enter announcement or important notes..."
-          className="min-h-[80px] mb-3 bg-background"
+          className="min-h-[80px] mb-3 bg-background resize-none overflow-hidden"
           autoFocus
         />
         <div className="flex gap-2 justify-end">
