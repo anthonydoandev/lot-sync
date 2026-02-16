@@ -48,19 +48,6 @@ export const LotCard = memo(function LotCard({
           {lot.contents}
         </span>
 
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
-          {isHistory && lot.retired_at ? (
-            <>
-              {formatDate(lot.created_at)} -{" "}
-              <span className="font-bold underline">
-                {formatDate(lot.retired_at)}
-              </span>
-            </>
-          ) : (
-            formatDate(lot.created_at)
-          )}
-        </span>
-
         <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           {!isHistory &&
             currentUserId &&
@@ -122,6 +109,19 @@ export const LotCard = memo(function LotCard({
             </Button>
           )}
         </div>
+
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {isHistory && lot.retired_at ? (
+            <>
+              {formatDate(lot.created_at)} -{" "}
+              <span className="font-bold underline">
+                {formatDate(lot.retired_at)}
+              </span>
+            </>
+          ) : (
+            formatDate(lot.created_at)
+          )}
+        </span>
       </div>
 
       {workers.length > 0 && (
