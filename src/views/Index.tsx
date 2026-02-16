@@ -81,7 +81,7 @@ const Index = () => {
   // Group history items by retired month
   const palletMonthGroups = useMemo(
     () => (viewMode === "history" ? groupByRetiredMonth(filteredPallets) : []),
-    [viewMode, filteredPallets]
+    [viewMode, filteredPallets],
   );
   const lotMonthGroups = useMemo(
     () =>
@@ -91,13 +91,13 @@ const Index = () => {
             ioGroups: groupByIO(month.items),
           }))
         : [],
-    [viewMode, filteredLots]
+    [viewMode, filteredLots],
   );
 
   // Group active lots by IO
   const activeLotIOGroups = useMemo(
     () => (viewMode === "active" ? groupByIO(filteredLots) : []),
-    [viewMode, filteredLots]
+    [viewMode, filteredLots],
   );
 
   // Redirect if not authenticated
@@ -310,16 +310,16 @@ const Index = () => {
                 </div>
               </div>
 
-              <TabsContent value="pallets" className="mt-6">
+              <TabsContent value="pallets" className="mt-8">
                 {filteredPallets.length === 0 ? (
                   <div className="text-center py-20">
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-muted/70 mb-4">
                       <Package className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <p className="text-xl text-muted-foreground">
+                    <p className="text-2xl font-medium text-muted-foreground">
                       No pallets found
                     </p>
-                    <p className="text-base text-muted-foreground/70 mt-1">
+                    <p className="text-lg text-muted-foreground/70 mt-2">
                       {viewMode === "active"
                         ? "Add your first pallet to get started"
                         : "No archived pallets yet"}
@@ -339,21 +339,18 @@ const Index = () => {
                     )}
                   </div>
                 ) : viewMode === "history" ? (
-                  <div className="space-y-10">
+                  <div className="space-y-12">
                     {palletMonthGroups.map((group) => (
-                      <div
-                        key={group.label}
-                        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                      >
+                      <div key={group.label} className="space-y-4">
                         <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
-                          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                          <h2 className="text-3xl font-bold text-foreground tracking-tight">
                             {group.label}
                           </h2>
-                          <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                          <span className="text-base font-semibold bg-primary/10 text-primary px-3 py-0.5 rounded-full">
                             {group.items.length}
                           </span>
                         </div>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-3">
                           {group.items.map((pallet) => (
                             <PalletCard
                               key={pallet.id}
@@ -377,28 +374,25 @@ const Index = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-10">
+                  <div className="space-y-12">
                     {CATEGORY_ORDER.map((category) => {
                       const categoryPallets = categorizedPallets[category];
                       if (!categoryPallets || categoryPallets.length === 0)
                         return null;
 
                       return (
-                        <div
-                          key={category}
-                          className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                        >
+                        <div key={category} className="space-y-4">
                           {category !== "MISC" && (
                             <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
-                              <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                              <h2 className="text-3xl font-bold text-foreground tracking-tight">
                                 {category === "AIO" ? "ALL-IN-ONE" : category}
                               </h2>
-                              <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                              <span className="text-base font-semibold bg-primary/10 text-primary px-3 py-0.5 rounded-full">
                                 {categoryPallets.length}
                               </span>
                             </div>
                           )}
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-3">
                             {categoryPallets.map((pallet) => (
                               <PalletCard
                                 key={pallet.id}
@@ -425,16 +419,16 @@ const Index = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="lots" className="mt-6">
+              <TabsContent value="lots" className="mt-8">
                 {filteredLots.length === 0 ? (
                   <div className="text-center py-20">
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-muted/70 mb-4">
                       <Box className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <p className="text-xl text-muted-foreground">
+                    <p className="text-2xl font-medium text-muted-foreground">
                       No lots found
                     </p>
-                    <p className="text-base text-muted-foreground/70 mt-1">
+                    <p className="text-lg text-muted-foreground/70 mt-2">
                       {viewMode === "active"
                         ? "Add your first lot to get started"
                         : "No archived lots yet"}
@@ -454,17 +448,14 @@ const Index = () => {
                     )}
                   </div>
                 ) : viewMode === "history" ? (
-                  <div className="space-y-10">
+                  <div className="space-y-12">
                     {lotMonthGroups.map((month) => (
-                      <div
-                        key={month.label}
-                        className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                      >
+                      <div key={month.label} className="space-y-6">
                         <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
-                          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                          <h2 className="text-3xl font-bold text-foreground tracking-tight">
                             {month.label}
                           </h2>
-                          <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                          <span className="text-base font-semibold bg-primary/10 text-primary px-3 py-0.5 rounded-full">
                             {month.items.length}
                           </span>
                         </div>
@@ -472,16 +463,16 @@ const Index = () => {
                           {month.ioGroups.map((ioGroup) => (
                             <div key={ioGroup.label} className="space-y-2">
                               <div className="flex items-center gap-2">
-                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                                <h3 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">
                                   {ioGroup.label === "No IO"
                                     ? ioGroup.label
                                     : `IO-${ioGroup.label}`}
                                 </h3>
-                                <span className="text-xs font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                                <span className="text-sm font-medium bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full">
                                   {ioGroup.items.length}
                                 </span>
                               </div>
-                              <div className="flex flex-col gap-2">
+                              <div className="flex flex-col gap-3">
                                 {ioGroup.items.map((lot) => (
                                   <LotCard
                                     key={lot.id}
@@ -511,23 +502,20 @@ const Index = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-10">
+                  <div className="space-y-12">
                     {activeLotIOGroups.map((ioGroup) => (
-                      <div
-                        key={ioGroup.label}
-                        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                      >
+                      <div key={ioGroup.label} className="space-y-4">
                         <div className="flex items-center gap-3 border-l-4 border-l-primary pl-4 pb-2">
-                          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                          <h2 className="text-3xl font-bold text-foreground tracking-tight">
                             {ioGroup.label === "No IO"
                               ? ioGroup.label
                               : `IO-${ioGroup.label}`}
                           </h2>
-                          <span className="text-sm font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                          <span className="text-base font-semibold bg-primary/10 text-primary px-3 py-0.5 rounded-full">
                             {ioGroup.items.length}
                           </span>
                         </div>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-3">
                           {ioGroup.items.map((lot) => (
                             <LotCard
                               key={lot.id}

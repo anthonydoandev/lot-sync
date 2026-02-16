@@ -34,16 +34,16 @@ export const LotCard = memo(function LotCard({
     : false;
 
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 rounded-lg border border-l-2 border-l-transparent hover:border-l-primary bg-card hover:bg-muted/50 transition-colors duration-150">
-      <span className="font-mono font-bold text-foreground uppercase shrink-0">
+    <div className="group flex items-center gap-3 px-5 py-4 rounded-lg border border-l-2 border-l-border hover:border-l-primary bg-card hover:bg-muted/50 transition-colors duration-150">
+      <span className="font-mono text-lg font-bold text-foreground uppercase shrink-0">
         {lot.lot_number}
       </span>
       {lot.io && (
-        <Badge variant="outline" className="text-xs font-medium shrink-0">
+        <Badge variant="outline" className="text-sm font-medium shrink-0">
           IO-{lot.io}
         </Badge>
       )}
-      <span className="text-sm text-muted-foreground uppercase flex-1 truncate">
+      <span className="text-base text-muted-foreground uppercase flex-1 truncate">
         {lot.contents}
       </span>
 
@@ -123,7 +123,7 @@ export const LotCard = memo(function LotCard({
         )}
       </div>
 
-      <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+      <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0">
         {isHistory && lot.retired_at ? (
           <>
             {formatDate(lot.created_at)} -{" "}

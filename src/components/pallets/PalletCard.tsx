@@ -14,66 +14,106 @@ interface PalletCardProps {
   isHistory?: boolean;
 }
 
-export const PalletCard = memo(function PalletCard({ pallet, onEdit, onRetire, onUnretire, onDelete, isHistory = false }: PalletCardProps) {
+export const PalletCard = memo(function PalletCard({
+  pallet,
+  onEdit,
+  onRetire,
+  onUnretire,
+  onDelete,
+  isHistory = false,
+}: PalletCardProps) {
   const getDisplayDescription = () => {
     let desc = pallet.description;
     if (pallet.grade && desc.startsWith(pallet.grade)) {
       desc = desc.substring(pallet.grade.length).trim();
     }
     const typeUpper = pallet.type?.toUpperCase();
-    const displayType = pallet.type && typeUpper !== "OTHER" && typeUpper !== "MISC" ? pallet.type : "";
+    const displayType =
+      pallet.type && typeUpper !== "OTHER" && typeUpper !== "MISC"
+        ? pallet.type
+        : "";
     return `${desc} ${displayType}`.trim();
   };
 
-  const isLowGrade = pallet.grade && ["D/F", "D", "F"].includes(pallet.grade.toUpperCase());
+  const isLowGrade =
+    pallet.grade && ["D/F", "D", "F"].includes(pallet.grade.toUpperCase());
   const isMisc = pallet.type?.toUpperCase() === "MISC";
 
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 rounded-lg border border-l-2 border-l-transparent hover:border-l-primary bg-card hover:bg-muted/50 transition-colors duration-150">
+    <div className="group flex items-center gap-3 px-5 py-4 rounded-lg border border-l-2 border-l-border hover:border-l-primary bg-card hover:bg-muted/50 transition-colors duration-150">
       {pallet.grade && (
-        <Badge variant={isLowGrade ? "destructive" : "secondary"} className="uppercase">
+        <Badge
+          variant={isLowGrade ? "destructive" : "secondary"}
+          className="uppercase"
+        >
           {pallet.grade}
         </Badge>
       )}
-      <span className="font-mono font-bold text-foreground uppercase">{pallet.pallet_number}</span>
-      <span className="text-sm text-muted-foreground uppercase flex-1 truncate">
+      <span className="font-mono text-lg font-bold text-foreground uppercase">
+        {pallet.pallet_number}
+      </span>
+      <span className="text-base text-muted-foreground uppercase flex-1 truncate">
         {getDisplayDescription()}
         {!isHistory && pallet.notes && (
-          <span className="text-xs italic normal-case"> - {pallet.notes}</span>
+          <span className="text-sm italic normal-case"> - {pallet.notes}</span>
         )}
       </span>
 
       <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         {!isHistory ? (
           <>
-            <Button size="icon" variant="ghost" onClick={() => onEdit(pallet)} className="h-8 w-8 hover:bg-muted">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => onEdit(pallet)}
+              className="h-8 w-8 hover:bg-muted"
+            >
               <Pencil className="h-4 w-4" />
             </Button>
             {!isMisc && (
               <>
-                <Button size="icon" variant="ghost" onClick={() => onRetire(pallet.id)} className="h-8 w-8 text-accent hover:bg-accent/10">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onRetire(pallet.id)}
+                  className="h-8 w-8 text-accent hover:bg-accent/10"
+                >
                   <Archive className="h-4 w-4" />
                 </Button>
-                <Button size="icon" variant="ghost" onClick={() => onDelete(pallet.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => onDelete(pallet.id)}
+                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </>
             )}
           </>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => onUnretire(pallet.id)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onUnretire(pallet.id)}
+          >
             Unretire
           </Button>
         )}
       </div>
 
       {!isMisc && (
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
           {isHistory && pallet.retired_at ? (
             <>
-              {formatDate(pallet.created_at)} - <span className="font-bold underline">{formatDate(pallet.retired_at)}</span>
+              {formatDate(pallet.created_at)} -{" "}
+              <span className="font-bold underline">
+                {formatDate(pallet.retired_at)}
+              </span>
             </>
-          ) : formatDate(pallet.created_at)}
+          ) : (
+            formatDate(pallet.created_at)
+          )}
         </span>
       )}
     </div>
