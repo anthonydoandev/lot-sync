@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Razor ERP Auto-Fill",
+  "version": "1.0",
+  "description": "Auto-fill audit forms in Razor ERP",
+  "permissions": ["activeTab", "scripting", "storage", "notifications"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "fill-form": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F"
+      },
+      "description": "Fill form with saved template"
+    }
+  }
+}

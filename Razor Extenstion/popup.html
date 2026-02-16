@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 450px;
+      max-height: 600px;
+      padding: 0;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    .header {
+      background: #2c3e50;
+      color: white;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .content {
+      padding: 15px;
+      max-height: 550px;
+      overflow-y: auto;
+    }
+    .quick-fill {
+      margin-bottom: 15px;
+    }
+    .quick-fill h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 14px;
+    }
+    .preset-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .preset-btn {
+      padding: 10px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .preset-btn:hover {
+      background: #2980b9;
+    }
+    .preset-btn.grade-d {
+      background: #FF9800;
+    }
+    .preset-btn.grade-d:hover {
+      background: #F57C00;
+    }
+    .preset-btn.grade-f {
+      background: #f44336;
+    }
+    .preset-btn.grade-f:hover {
+      background: #d32f2f;
+    }
+    .custom-template {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #ddd;
+    }
+    .custom-template h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 14px;
+    }
+    .template-form {
+      display: grid;
+      gap: 8px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .form-row label {
+      font-size: 11px;
+      color: #555;
+      font-weight: bold;
+    }
+    .form-row input {
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .form-row input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    .form-row select {
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: 12px;
+      background: white;
+      cursor: pointer;
+    }
+    .form-row select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .btn-save {
+      background: #27ae60;
+      color: white;
+    }
+    .btn-save:hover {
+      background: #229954;
+    }
+    .btn-fill {
+      background: #3498db;
+      color: white;
+    }
+    .btn-fill:hover {
+      background: #2980b9;
+    }
+    .btn-clear {
+      background: #95a5a6;
+      color: white;
+    }
+    .btn-clear:hover {
+      background: #7f8c8d;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 8px;
+      background: white;
+      border-radius: 4px;
+      font-size: 11px;
+      text-align: center;
+      color: #666;
+      display: none;
+    }
+    .status.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="content">
+    <div class="quick-fill">
+      <h4>Presets</h4>
+      <div class="preset-buttons">
+        <button class="preset-btn grade-d" data-preset="gradeD_noHDD">GRADE D (NO HDD)</button>
+        <button class="preset-btn grade-f" data-preset="gradeF_noHDD">GRADE F (NO HDD)</button>
+        <button class="preset-btn grade-d" data-preset="gradeD_yesHDD">GRADE D (HDD)</button>
+        <button class="preset-btn grade-f" data-preset="gradeF_yesHDD">GRADE F (HDD)</button>
+      </div>
+    </div>
+
+    <div class="custom-template">
+     <h4>Custom Template</h4>
+      <div class="action-buttons">
+        <button class="btn btn-save" data-action="save">Save Template</button>
+        <button class="btn btn-fill" data-action="fill">Fill Form (Ctrl+Shift+F)</button>
+        <button class="btn btn-clear" data-action="clear">Clear All</button>
+      </div>
+ 
+      <div class="template-form" id="form-fields"></div>
+    </div>
+    
+    <div id="status" class="status"></div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
