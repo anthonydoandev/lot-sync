@@ -14,7 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Inter"', "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        heading: ["var(--font-cinzel)", "serif"],
+        display: ["var(--font-metal-mania)", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",
