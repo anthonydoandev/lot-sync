@@ -287,7 +287,6 @@ const PRESETS = {
 // ---- PRESET MANAGEMENT CONSTANTS ----
 const EXCLUDED_SCAN_FIELDS = [
   "Category",
-  "Location",
   "Description",
   "HardDriveSerial",
   "FinalGrade",
@@ -978,6 +977,20 @@ async function fillAndSubmit(data, isPreset = false) {
             }
           }
         });
+
+        // Close all autocomplete dropdowns after filling
+        try {
+          if (typeof $ !== "undefined" && $.fn && $.fn.autocomplete) {
+            $(".ui-autocomplete-input").autocomplete("close");
+          }
+        } catch (e) {}
+        document
+          .querySelectorAll(".ui-autocomplete")
+          .forEach((menu) => (menu.style.display = "none"));
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+
         return {
           success: true,
           filledCount: filledCount,
