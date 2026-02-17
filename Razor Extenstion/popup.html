@@ -327,6 +327,117 @@
       background: #b39ddb;
       cursor: not-allowed;
     }
+
+    /* Saved Presets */
+    .saved-presets-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 8px;
+      font-size: 11px;
+      color: #888;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .saved-presets-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #ddd;
+    }
+    .user-preset-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .user-preset-btn {
+      background: #16a085 !important;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .user-preset-btn:hover {
+      background: #138d75 !important;
+    }
+    .preset-btn-name {
+      flex: 1;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preset-btn-edit {
+      font-size: 14px;
+      opacity: 0.7;
+      cursor: pointer;
+      padding: 2px;
+    }
+    .preset-btn-edit:hover {
+      opacity: 1;
+    }
+    .new-preset-btn {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: #888;
+      border: 2px dashed #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+    .new-preset-btn:hover {
+      border-color: #16a085;
+      color: #16a085;
+    }
+
+    /* Preset Manager Panel */
+    .preset-manager {
+      display: none;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .preset-manager h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #333;
+    }
+    .preset-manager-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-delete-preset {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-delete-preset:hover {
+      background: #c0392b;
+    }
+    .btn-delete-preset.confirm {
+      background: #c0392b;
+    }
+    .btn-scan {
+      background: #8e44ad;
+      color: white;
+    }
+    .btn-scan:hover {
+      background: #7d3c98;
+    }
   </style>
 </head>
 <body>
@@ -376,6 +487,33 @@
         <button class="preset-btn grade-f" data-preset="gradeF_noHDD">GRADE F (NO HDD)</button>
         <button class="preset-btn grade-d" data-preset="gradeD_yesHDD">GRADE D (HDD)</button>
         <button class="preset-btn grade-f" data-preset="gradeF_yesHDD">GRADE F (HDD)</button>
+      </div>
+
+      <div id="savedPresetsDivider" class="saved-presets-divider" style="display: none;">Saved Presets</div>
+      <div id="userPresetButtons" class="user-preset-buttons"></div>
+      <button id="newPresetBtn" class="new-preset-btn">+ New Preset</button>
+
+      <div id="presetManager" class="preset-manager">
+        <h4 id="presetManagerTitle">New Preset</h4>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <label>Name:</label>
+          <input type="text" id="presetName" placeholder="My Preset">
+        </div>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <label>Category:</label>
+          <select id="presetCategory">
+            <option value="desktop">Desktops</option>
+            <option value="laptop">Laptops</option>
+            <option value="hardDrive">Hard Drives</option>
+          </select>
+        </div>
+        <button id="scanPresetBtn" class="btn btn-scan" style="width: 100%; margin-bottom: 10px;">Scan from Page</button>
+        <div id="presetManagerFields" class="template-form"></div>
+        <div class="preset-manager-actions">
+          <button id="savePresetBtn" class="btn btn-save">Save Preset</button>
+          <button id="cancelPresetBtn" class="btn btn-clear">Cancel</button>
+          <button id="deletePresetBtn" class="btn-delete-preset" style="display: none;">Delete</button>
+        </div>
       </div>
     </div>
 

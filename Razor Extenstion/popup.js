@@ -284,6 +284,400 @@ const PRESETS = {
   },
 };
 
+// ---- PRESET MANAGEMENT CONSTANTS ----
+const EXCLUDED_SCAN_FIELDS = [
+  "Category",
+  "Location",
+  "Description",
+  "HardDriveSerial",
+  "FinalGrade",
+];
+
+const LAPTOP_ONLY_FIELDS = [
+  "BatteryType",
+  "BatteryLife",
+  "ScreenResolution",
+  "ScreenSize",
+  "TouchScreen",
+  "FingerprintSens",
+  "LCDTestResults",
+  "KBTestResults",
+];
+
+const HARD_DRIVE_FIELD_IDS = [
+  "Condition",
+  "Notes",
+  "NextStep",
+  "PACKAGING",
+  "Weight",
+  "FormFactor",
+  "HDDType",
+  "HDDSize",
+  "HDDCaddie",
+  "HDDRemoved",
+  "HDDQty",
+  "HardDriveModel",
+  "StorageMedium",
+  "ErasureMethod",
+  "ErasureResults",
+  "ErasureDate",
+  "DriveShredded",
+  "PassorFail",
+  "Grade",
+  "FailReason",
+];
+
+function getCategoryFields(category) {
+  return FIELDS.filter((f) => {
+    if (EXCLUDED_SCAN_FIELDS.includes(f.id)) return false;
+    if (f.id === "FinalGrade") return false;
+    if (category === "desktop" && LAPTOP_ONLY_FIELDS.includes(f.id))
+      return false;
+    if (category === "hardDrive" && !HARD_DRIVE_FIELD_IDS.includes(f.id))
+      return false;
+    return true;
+  });
+}
+
+// ---- PRESET STORAGE ----
+function generatePresetId() {
+  return "preset_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+}
+
+function loadUserPresets() {
+  return new Promise((resolve) => {
+    safeChrome.storage.local.get(["user_presets"], (result) => {
+      resolve(result.user_presets || []);
+    });
+  });
+}
+
+function saveUserPresets(presets) {
+  return new Promise((resolve) => {
+    safeChrome.storage.local.set({ user_presets: presets }, resolve);
+  });
+}
+
+// ---- PRESET UI ----
+let currentEditingPresetId = null;
+
+async function renderUserPresetButtons() {
+  const presets = await loadUserPresets();
+  const container = document.getElementById("userPresetButtons");
+  const divider = document.getElementById("savedPresetsDivider");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (presets.length === 0) {
+    if (divider) divider.style.display = "none";
+    return;
+  }
+
+  if (divider) divider.style.display = "flex";
+
+  presets.forEach((preset) => {
+    const btn = document.createElement("button");
+    btn.className = "preset-btn user-preset-btn";
+    btn.innerHTML = `<span class="preset-btn-name">${escapeHtml(preset.name)}</span><span class="preset-btn-edit" data-edit-id="${preset.id}" title="Edit preset">\u2699</span>`;
+    btn.addEventListener("click", (e) => {
+      if (e.target.classList.contains("preset-btn-edit")) {
+        openPresetManager(e.target.dataset.editId);
+        return;
+      }
+      applyUserPreset(preset);
+    });
+    container.appendChild(btn);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function applyUserPreset(preset) {
+  const data = { ...preset.fields };
+  if (data.Grade) {
+    data.FinalGrade = data.Grade;
+  }
+  await fillAndSubmit(data, true);
+}
+
+// ---- PRESET MANAGER ----
+function openPresetManager(presetId) {
+  const panel = document.getElementById("presetManager");
+  const title = document.getElementById("presetManagerTitle");
+  const nameInput = document.getElementById("presetName");
+  const categorySelect = document.getElementById("presetCategory");
+  const deleteBtn = document.getElementById("deletePresetBtn");
+  if (!panel) return;
+
+  panel.style.display = "block";
+
+  if (presetId) {
+    currentEditingPresetId = presetId;
+    if (title) title.textContent = "Edit Preset";
+    loadUserPresets().then((presets) => {
+      const preset = presets.find((p) => p.id === presetId);
+      if (!preset) return;
+      if (nameInput) nameInput.value = preset.name;
+      if (categorySelect) categorySelect.value = preset.category;
+      buildPresetManagerFields(preset.category, preset.fields);
+    });
+    if (deleteBtn) deleteBtn.style.display = "inline-block";
+  } else {
+    currentEditingPresetId = null;
+    if (title) title.textContent = "New Preset";
+    if (nameInput) nameInput.value = "";
+    if (categorySelect) categorySelect.value = "desktop";
+    buildPresetManagerFields("desktop", {});
+    if (deleteBtn) {
+      deleteBtn.style.display = "none";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.classList.remove("confirm");
+    }
+  }
+}
+
+function closePresetManager() {
+  const panel = document.getElementById("presetManager");
+  if (panel) panel.style.display = "none";
+  currentEditingPresetId = null;
+
+  const deleteBtn = document.getElementById("deletePresetBtn");
+  if (deleteBtn) {
+    deleteBtn.textContent = "Delete";
+    deleteBtn.classList.remove("confirm");
+  }
+}
+
+function buildPresetManagerFields(category, existingValues) {
+  const container = document.getElementById("presetManagerFields");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const fields = getCategoryFields(category);
+  fields.forEach((field) => {
+    const row = document.createElement("div");
+    row.className = "form-row";
+
+    if (field.isDropdown && field.options) {
+      const selectOptions = field.options
+        .map((opt) => {
+          if (typeof opt === "string") {
+            return `<option value="${opt}">${opt}</option>`;
+          }
+          return `<option value="${opt.value}">${opt.label}</option>`;
+        })
+        .join("");
+      row.innerHTML = `
+        <label>${field.label}:</label>
+        <select id="pm_${field.id}">
+          <option value="">-- Select --</option>
+          ${selectOptions}
+        </select>
+      `;
+    } else {
+      row.innerHTML = `
+        <label>${field.label}:</label>
+        <input type="text" id="pm_${field.id}" placeholder="">
+      `;
+    }
+    container.appendChild(row);
+
+    if (existingValues && existingValues[field.id]) {
+      const input = document.getElementById(`pm_${field.id}`);
+      if (input) input.value = existingValues[field.id];
+    }
+  });
+}
+
+async function savePresetFromManager() {
+  const nameInput = document.getElementById("presetName");
+  const categorySelect = document.getElementById("presetCategory");
+  if (!nameInput || !categorySelect) return;
+
+  const name = nameInput.value.trim();
+  const category = categorySelect.value;
+
+  if (!name) {
+    showStatus("\u26A0 Please enter a preset name", true);
+    return;
+  }
+
+  if (name.length > 50) {
+    showStatus("\u26A0 Preset name must be 50 characters or less", true);
+    return;
+  }
+
+  const fields = {};
+  const categoryFields = getCategoryFields(category);
+  categoryFields.forEach((field) => {
+    const input = document.getElementById(`pm_${field.id}`);
+    if (input && input.value.trim()) {
+      fields[field.id] = input.value.trim();
+    }
+  });
+
+  if (Object.keys(fields).length === 0) {
+    showStatus("\u26A0 No fields filled", true);
+    return;
+  }
+
+  if (fields.Grade) {
+    fields.FinalGrade = fields.Grade;
+  }
+
+  const presets = await loadUserPresets();
+
+  if (currentEditingPresetId) {
+    const idx = presets.findIndex((p) => p.id === currentEditingPresetId);
+    if (idx !== -1) {
+      presets[idx] = { ...presets[idx], name, category, fields };
+    }
+  } else {
+    presets.push({ id: generatePresetId(), name, category, fields });
+  }
+
+  await saveUserPresets(presets);
+  await renderUserPresetButtons();
+  closePresetManager();
+  showStatus("\u2713 Preset saved!");
+}
+
+async function deleteUserPreset() {
+  const deleteBtn = document.getElementById("deletePresetBtn");
+  if (!deleteBtn || !currentEditingPresetId) return;
+
+  if (!deleteBtn.classList.contains("confirm")) {
+    deleteBtn.textContent = "Confirm Delete";
+    deleteBtn.classList.add("confirm");
+    return;
+  }
+
+  const presets = await loadUserPresets();
+  const filtered = presets.filter((p) => p.id !== currentEditingPresetId);
+  await saveUserPresets(filtered);
+  await renderUserPresetButtons();
+  closePresetManager();
+  showStatus("\u2713 Preset deleted");
+}
+
+// ---- PAGE SCAN ----
+async function scanPageForPreset() {
+  try {
+    const [tab] = await safeChrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (!tab || !tab.id) {
+      showStatus("\u274C No active tab found", true);
+      return;
+    }
+
+    const results = await safeChrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: (fieldMappings, excludedFields) => {
+        const values = {};
+        let detectedCategory = "desktop";
+
+        const categoryEl = document.querySelector("#ac_Category");
+        const categoryValue = categoryEl ? categoryEl.value : "";
+
+        if (categoryValue.toLowerCase().includes("laptop")) {
+          detectedCategory = "laptop";
+        } else if (categoryValue.toLowerCase().includes("hard drive")) {
+          detectedCategory = "hardDrive";
+        } else {
+          detectedCategory = "desktop";
+        }
+
+        fieldMappings.forEach((field) => {
+          if (excludedFields.includes(field.id)) return;
+          const el = document.querySelector(field.selector);
+          if (el && el.value && el.value.trim()) {
+            values[field.id] = el.value.trim();
+          }
+        });
+
+        return { values, detectedCategory };
+      },
+      args: [FIELDS, EXCLUDED_SCAN_FIELDS],
+    });
+
+    if (!results || !results[0] || !results[0].result) {
+      showStatus("\u274C Failed to scan page", true);
+      return;
+    }
+
+    const { values, detectedCategory } = results[0].result;
+
+    if (Object.keys(values).length === 0) {
+      showStatus("\u26A0 No field values found on page", true);
+      return;
+    }
+
+    const panel = document.getElementById("presetManager");
+    const title = document.getElementById("presetManagerTitle");
+    const nameInput = document.getElementById("presetName");
+    const categorySelect = document.getElementById("presetCategory");
+    const deleteBtn = document.getElementById("deletePresetBtn");
+
+    currentEditingPresetId = null;
+    if (panel) panel.style.display = "block";
+    if (title) title.textContent = "New Preset (Scanned)";
+    if (nameInput) nameInput.value = "";
+    if (categorySelect) categorySelect.value = detectedCategory;
+
+    buildPresetManagerFields(detectedCategory, values);
+
+    if (deleteBtn) {
+      deleteBtn.style.display = "none";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.classList.remove("confirm");
+    }
+
+    showStatus("\u2713 Scanned " + Object.keys(values).length + " fields");
+  } catch (err) {
+    showStatus("Error scanning: " + err.message, true);
+  }
+}
+
+// ---- PRESET MANAGER LISTENERS ----
+function setupPresetManagerListeners() {
+  const newPresetBtn = document.getElementById("newPresetBtn");
+  const savePresetBtn = document.getElementById("savePresetBtn");
+  const cancelPresetBtn = document.getElementById("cancelPresetBtn");
+  const deletePresetBtn = document.getElementById("deletePresetBtn");
+  const scanPresetBtn = document.getElementById("scanPresetBtn");
+  const categorySelect = document.getElementById("presetCategory");
+
+  if (newPresetBtn)
+    newPresetBtn.addEventListener("click", () => openPresetManager());
+  if (savePresetBtn)
+    savePresetBtn.addEventListener("click", savePresetFromManager);
+  if (cancelPresetBtn)
+    cancelPresetBtn.addEventListener("click", closePresetManager);
+  if (deletePresetBtn)
+    deletePresetBtn.addEventListener("click", deleteUserPreset);
+  if (scanPresetBtn) scanPresetBtn.addEventListener("click", scanPageForPreset);
+
+  if (categorySelect) {
+    categorySelect.addEventListener("change", () => {
+      const currentValues = {};
+      document.querySelectorAll('[id^="pm_"]').forEach((input) => {
+        if (input.value && input.value.trim()) {
+          const fieldId = input.id.replace("pm_", "");
+          currentValues[fieldId] = input.value.trim();
+        }
+      });
+      buildPresetManagerFields(categorySelect.value, currentValues);
+    });
+  }
+}
+
 // ---- INIT ----
 document.addEventListener("DOMContentLoaded", init);
 
@@ -296,6 +690,8 @@ function init() {
   setupAuthListeners();
   loadAuthState();
   setupCreateLotListeners();
+  setupPresetManagerListeners();
+  renderUserPresetButtons();
 }
 
 // ---- BUILD FORM ----
