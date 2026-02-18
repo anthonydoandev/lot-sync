@@ -1,60 +1,6 @@
 const StorageIdentificationSection = () => {
   return (
     <article className="prose prose-slate dark:prose-invert max-w-none">
-      <h1 className="text-3xl font-bold mb-2">Storage Drives</h1>
-      <p className="text-muted-foreground text-lg mb-8">
-        Identifying drive interfaces, protocols, and form factors.
-      </p>
-
-      <hr className="my-8" />
-
-      {/* Interfaces & Protocols */}
-      <h2 className="text-xl font-semibold mt-8 mb-4">
-        Interfaces & Protocols
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        {/* SATA HDD */}
-        <div className="border rounded-lg p-4 bg-card">
-          <h3 className="text-lg font-semibold mb-2 mt-0">SATA HDD</h3>
-          <ul className="text-sm space-y-1 mb-0 list-disc pl-4">
-            <li>Max: 20 TB, 600 MB/s (SATA III)</li>
-            <li>Use: Desktops, external drives, bulk storage</li>
-          </ul>
-        </div>
-
-        {/* SATA SSD */}
-        <div className="border rounded-lg p-4 bg-card">
-          <h3 className="text-lg font-semibold mb-2 mt-0">SATA SSD</h3>
-          <ul className="text-sm space-y-1 mb-0 list-disc pl-4">
-            <li>Same connector as SATA HDD</li>
-            <li>2.5-inch form factor</li>
-            <li>Use: General computing, web browsing, basic programs</li>
-          </ul>
-        </div>
-
-        {/* NVMe SSD */}
-        <div className="border rounded-lg p-4 bg-card">
-          <h3 className="text-lg font-semibold mb-2 mt-0">NVMe SSD</h3>
-          <ul className="text-sm space-y-1 mb-0 list-disc pl-4">
-            <li>Uses PCIe lanes (x4 typical)</li>
-            <li>M.2 form factor</li>
-            <li>1000-7500 MB/s speeds</li>
-            <li>Use: Performance tasks, gaming, OS drives</li>
-          </ul>
-        </div>
-
-        {/* SAS */}
-        <div className="border rounded-lg p-4 bg-card">
-          <h3 className="text-lg font-semibold mb-2 mt-0">SAS</h3>
-          <ul className="text-sm space-y-1 mb-0 list-disc pl-4">
-            <li>Enterprise interface</li>
-            <li>Servers and workstations</li>
-            <li>Can connect multiple devices to single port</li>
-            <li>Use: Data centers, RAID configurations</li>
-          </ul>
-        </div>
-      </div>
 
       <div className="my-6">
         <img
