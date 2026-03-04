@@ -1474,7 +1474,7 @@ function saveTemplate() {
   }
 
   if (Object.keys(data).length === 0) {
-    showStatus(“\u26A0 No fields filled to save”, true);
+    showStatus("\u26A0 No fields filled to save", true);
     return;
   }
 
@@ -1483,9 +1483,9 @@ function saveTemplate() {
 
   safeChrome.storage.local.set({ saved_template: data }, () => {
     if (chrome.runtime.lastError) {
-      showStatus(“Error saving: “ + chrome.runtime.lastError.message, true);
+      showStatus("Error saving: " + chrome.runtime.lastError.message, true);
     } else {
-      showStatus(“\u2713 Template saved!”);
+      showStatus("\u2713 Template saved!");
     }
   });
 }
@@ -1499,7 +1499,7 @@ async function fillCustomTemplate() {
   }
 
   if (Object.keys(data).length === 0) {
-    showStatus(“\u26A0 No fields filled to submit”, true);
+    showStatus("\u26A0 No fields filled to submit", true);
     return;
   }
 
@@ -1510,10 +1510,10 @@ function clearTemplate() {
   const filteredFields = getFieldsForCategory(currentTemplateCategory);
   filteredFields.forEach((field) => {
     const input = document.getElementById(`field_${field.id}`);
-    if (input) input.value = “”;
+    if (input) input.value = "";
   });
-  safeChrome.storage.local.remove([“saved_template”]);
-  showStatus(“\u2713 Template cleared!”);
+  safeChrome.storage.local.remove(["saved_template"]);
+  showStatus("\u2713 Template cleared!");
 }
 
 // ---- PAGE INJECTION ----
@@ -1525,17 +1525,17 @@ async function fillAndSubmit(data, isPreset = false) {
     });
 
     if (!tab) {
-      showStatus("âŒ No active tab found", true);
+      showStatus("\u274C No active tab found", true);
       return;
     }
 
     if (!tab.id) {
-      showStatus("âŒ Invalid tab ID", true);
+      showStatus("\u274C Invalid tab ID", true);
       return;
     }
 
     if (!safeChrome.scripting || !safeChrome.scripting.executeScript) {
-      showStatus("âŒ Extension scripting API not available", true);
+      showStatus("\u274C Extension scripting API not available", true);
       return;
     }
 
@@ -1671,12 +1671,12 @@ async function fillAndSubmit(data, isPreset = false) {
     if (results && results[0] && results[0].result) {
       const { filledCount, deviceType } = results[0].result;
       if (deviceType === "CUSTOM") {
-        showStatus(`âœ“ Filled ${filledCount} field(s)!`);
+        showStatus(`\u2713 Filled ${filledCount} field(s)!`);
       } else {
-        showStatus(`âœ“ Filled ${filledCount} field(s) for ${deviceType}!`);
+        showStatus(`\u2713 Filled ${filledCount} field(s) for ${deviceType}!`);
       }
     } else {
-      showStatus("âœ“ Form filled successfully!");
+      showStatus("\u2713 Form filled successfully!");
     }
   } catch (err) {
     showStatus("Error: " + err.message, true);
