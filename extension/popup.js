@@ -1674,6 +1674,13 @@ function showStatus(message, isError = false) {
       }
     });
   }
+
+  const closeSidePanelBtn = document.getElementById("closeSidePanel");
+  if (closeSidePanelBtn) {
+    closeSidePanelBtn.addEventListener("click", () => {
+      window.close();
+    });
+  }
 }
 
 // ---- SETTINGS MODULE ----
