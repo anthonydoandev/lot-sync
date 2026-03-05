@@ -202,6 +202,12 @@ chrome.commands.onCommand.addListener(async (command) => {
                 // Set the value
                 el.value = formData[field.id];
 
+                // Set the hidden sibling that stores the actual submitted value
+                const hidden = el.nextElementSibling;
+                if (hidden && hidden.type === "hidden") {
+                  hidden.value = formData[field.id];
+                }
+
                 // For dropdowns, also try to select by text if value doesn't work
                 if (field.isDropdown && el.tagName === "SELECT") {
                   const options = Array.from(el.options);

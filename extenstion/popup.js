@@ -23,6 +23,12 @@ const FIELDS = [
     label: "Condition",
     id: "Condition",
     selector: "#ac_Condition",
+    isDropdown: true,
+    options: [
+      { label: "SCRAP", value: "SCRAP" },
+      { label: "TEST_REQUIRED", value: "TEST_REQUIRED" },
+      { label: "Key Function Tested", value: "Key Function Tested" },
+    ],
     categories: ["all"],
   },
   {
@@ -1259,12 +1265,10 @@ function setupMasterItemListeners() {
 
   const saveBtn = document.getElementById("miSaveBtn");
   const fillBtn = document.getElementById("miFillBtn");
-  const scanBtn = document.getElementById("miScanBtn");
   const clearBtn = document.getElementById("miClearBtn");
 
   if (saveBtn) saveBtn.addEventListener("click", saveMasterItemTemplate);
   if (fillBtn) fillBtn.addEventListener("click", fillMasterItemPage);
-  if (scanBtn) scanBtn.addEventListener("click", scanMasterItemPage);
   if (clearBtn) clearBtn.addEventListener("click", clearMasterItemTemplate);
 }
 
@@ -1552,6 +1556,12 @@ async function fillAndSubmit(data, isPreset = false) {
             if (el) {
               // Set the value
               el.value = formData[field.id];
+
+              // Set the hidden sibling that stores the actual submitted value
+              const hidden = el.nextElementSibling;
+              if (hidden && hidden.type === "hidden") {
+                hidden.value = formData[field.id];
+              }
 
               // For dropdowns, also try to select by text if value doesn't work
               if (field.isDropdown && el.tagName === "SELECT") {
