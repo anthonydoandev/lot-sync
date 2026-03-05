@@ -145,18 +145,79 @@ const FIELDS = [
   },
 ];
 
-// Listen for keyboard command
+// ---- MASTER ITEM FIELD MAPPINGS ----
+const MASTER_ITEM_FIELDS_BG = [
+  { id: "mi_packaging", selector: "#ac_Attribute_47", type: "autocomplete" },
+  { id: "mi_formFactor", selector: "#ac_Attribute_5022", type: "autocomplete" },
+  { id: "mi_hddSpeed", selector: "#ac_Attribute_6138", type: "autocomplete" },
+  { id: "mi_hddType", selector: "#ac_Attribute_6139", type: "autocomplete" },
+  { id: "mi_hddCaddie", selector: "#ac_Attribute_6140", type: "autocomplete" },
+  {
+    id: "mi_caddiePartNumber",
+    selector: "#ac_Attribute_6141",
+    type: "autocomplete",
+  },
+  {
+    id: "mi_erasureMethod",
+    selector: "#ac_Attribute_6089",
+    type: "autocomplete",
+  },
+  {
+    id: "mi_erasureDate",
+    selector: "#ac_Attribute_6088",
+    type: "autocomplete",
+  },
+  {
+    id: "mi_erasureResults",
+    selector: "#ac_Attribute_6090",
+    type: "autocomplete",
+  },
+];
+
+// ---- SHARED FILL HELPER ----
+function fillAutocompleteFields(fields) {
+  let filledCount = 0;
+
+  fields.forEach((field) => {
+    const input = document.querySelector(field.selector);
+    if (!input) return;
+    input.value = field.value;
+    const hidden = input.nextElementSibling;
+    if (hidden && hidden.type === "hidden") hidden.value = field.value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    input.dispatchEvent(new Event("blur", { bubbles: true }));
+    if (input.classList.contains("ui-autocomplete-input")) {
+      input.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true }));
+    }
+    filledCount++;
+  });
+
+  try {
+    if (typeof $ !== "undefined" && $.fn && $.fn.autocomplete) {
+      $(".ui-autocomplete-input").autocomplete("close");
+    }
+  } catch (e) {}
+  document
+    .querySelectorAll(".ui-autocomplete")
+    .forEach((menu) => (menu.style.display = "none"));
+  if (document.activeElement) document.activeElement.blur();
+
+  return { success: true, filledCount };
+}
+
+// Listen for keyboard commands
 chrome.commands.onCommand.addListener(async (command) => {
+  // ---- CUSTOM TEMPLATE FILL (Ctrl+Shift+F) ----
   if (command === "fill-form") {
     try {
-      // Get the saved template from storage
       const result = await chrome.storage.local.get(["saved_template"]);
 
       if (
         !result.saved_template ||
         Object.keys(result.saved_template).length === 0
       ) {
-        // Show a notification
         chrome.notifications.create({
           type: "basic",
           title: "No Template Saved",
@@ -167,26 +228,18 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
 
       const data = result.saved_template;
-
-      // Get the active tab
       const [tab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
 
-      if (!tab || !tab.id) {
-        return;
-      }
+      if (!tab || !tab.id) return;
 
-      // Execute the fill script
-      const results = await chrome.scripting.executeScript({
+      await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: (fieldMappings, formData) => {
-          // Read Grade from the page (it's already filled manually)
           const gradeElement = document.querySelector("#ac_Grade");
           const currentGrade = gradeElement ? gradeElement.value : null;
-
-          // Copy Grade from page to Final Grade
           if (currentGrade) {
             formData.FinalGrade = currentGrade;
           }
@@ -195,20 +248,16 @@ chrome.commands.onCommand.addListener(async (command) => {
           const results = [];
 
           fieldMappings.forEach((field) => {
-            // Only fill fields that have values in formData
             if (formData[field.id]) {
               const el = document.querySelector(field.selector);
               if (el) {
-                // Set the value
                 el.value = formData[field.id];
 
-                // Set the hidden sibling that stores the actual submitted value
                 const hidden = el.nextElementSibling;
                 if (hidden && hidden.type === "hidden") {
                   hidden.value = formData[field.id];
                 }
 
-                // For dropdowns, also try to select by text if value doesn't work
                 if (field.isDropdown && el.tagName === "SELECT") {
                   const options = Array.from(el.options);
                   const matchingOption = options.find(
@@ -221,12 +270,10 @@ chrome.commands.onCommand.addListener(async (command) => {
                   }
                 }
 
-                // Trigger multiple events for autocomplete fields
                 el.dispatchEvent(new Event("input", { bubbles: true }));
                 el.dispatchEvent(new Event("change", { bubbles: true }));
                 el.dispatchEvent(new Event("blur", { bubbles: true }));
 
-                // For autocomplete fields, also trigger keyup and keydown
                 if (el.classList.contains("ui-autocomplete-input")) {
                   el.dispatchEvent(
                     new KeyboardEvent("keydown", { bubbles: true }),
@@ -264,39 +311,8 @@ chrome.commands.onCommand.addListener(async (command) => {
       // Silent error handling
     }
   }
-});
 
-// ---- MASTER ITEM FILL (Ctrl+Shift+M) ----
-
-const MASTER_ITEM_FIELDS_BG = [
-  { id: "mi_packaging", selector: "#ac_Attribute_47", type: "autocomplete" },
-  { id: "mi_formFactor", selector: "#ac_Attribute_5022", type: "autocomplete" },
-  { id: "mi_hddSpeed", selector: "#ac_Attribute_6138", type: "autocomplete" },
-  { id: "mi_hddType", selector: "#ac_Attribute_6139", type: "autocomplete" },
-  { id: "mi_hddCaddie", selector: "#ac_HDDCaddie", type: "autocomplete" },
-  {
-    id: "mi_caddiePartNumber",
-    selector: "#ac_CaddiePartNumber",
-    type: "autocomplete",
-  },
-  {
-    id: "mi_erasureMethod",
-    selector: "#ac_Attribute_6089",
-    type: "autocomplete",
-  },
-  {
-    id: "mi_erasureDate",
-    selector: "#ac_Attribute_6088",
-    type: "autocomplete",
-  },
-  {
-    id: "mi_erasureResults",
-    selector: "#ac_Attribute_6090",
-    type: "autocomplete",
-  },
-];
-
-chrome.commands.onCommand.addListener(async (command) => {
+  // ---- MASTER ITEM FILL (Ctrl+Shift+M) ----
   if (command === "fill-master-item") {
     try {
       const result = await chrome.storage.local.get([
@@ -339,20 +355,16 @@ chrome.commands.onCommand.addListener(async (command) => {
         func: (fields) => {
           let filledCount = 0;
 
-          function setAutocomplete(selector, value) {
-            const input = document.querySelector(selector);
-            if (!input) return false;
-            input.value = value;
+          fields.forEach((field) => {
+            const input = document.querySelector(field.selector);
+            if (!input) return;
+            input.value = field.value;
             const hidden = input.nextElementSibling;
-            if (hidden && hidden.type === "hidden") hidden.value = value;
+            if (hidden && hidden.type === "hidden") hidden.value = field.value;
             input.dispatchEvent(new Event("input", { bubbles: true }));
             input.dispatchEvent(new Event("change", { bubbles: true }));
             input.dispatchEvent(new Event("blur", { bubbles: true }));
-            return true;
-          }
-
-          fields.forEach((field) => {
-            if (setAutocomplete(field.selector, field.value)) filledCount++;
+            filledCount++;
           });
 
           try {

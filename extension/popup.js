@@ -954,13 +954,13 @@ const MASTER_ITEM_FIELDS = [
   {
     label: "HDD Caddie",
     id: "mi_hddCaddie",
-    selector: "#ac_HDDCaddie",
+    selector: "#ac_Attribute_6140",
     type: "autocomplete",
   },
   {
     label: "Caddie Part Number",
     id: "mi_caddiePartNumber",
-    selector: "#ac_CaddiePartNumber",
+    selector: "#ac_Attribute_6141",
     type: "autocomplete",
   },
   {
