@@ -918,29 +918,6 @@ function setupPresetManagerListeners() {
 
 // ---- MASTER ITEM FIELD MAPPINGS ----
 const MASTER_ITEM_FIELDS = [
-  // --- Basic Info ---
-  { group: "Basic Info" },
-  { label: "Model", id: "mi_model", selector: "#tb_ItemNumber", type: "text" },
-  {
-    label: "Manufacturer",
-    id: "mi_manufacturer",
-    selector: "#tb_Manufacturer",
-    type: "text",
-  },
-  {
-    label: "Type",
-    id: "mi_itemType",
-    selector: "#tb_ItemType",
-    type: "text",
-    default: "Inventory",
-  },
-  {
-    label: "Master Item Title",
-    id: "mi_title",
-    selector: "#tb_Title",
-    type: "text",
-  },
-
   // --- Attribute Defaults (Hard Drive set) ---
   { group: "Attribute Defaults" },
   {
@@ -957,12 +934,6 @@ const MASTER_ITEM_FIELDS = [
     type: "autocomplete",
   },
   {
-    label: "HDD Size",
-    id: "mi_hddSize",
-    selector: "#ac_Attribute_6137",
-    type: "autocomplete",
-  },
-  {
     label: "HDD Speed",
     id: "mi_hddSpeed",
     selector: "#ac_Attribute_6138",
@@ -972,6 +943,18 @@ const MASTER_ITEM_FIELDS = [
     label: "HDD Type",
     id: "mi_hddType",
     selector: "#ac_Attribute_6139",
+    type: "autocomplete",
+  },
+  {
+    label: "HDD Caddie",
+    id: "mi_hddCaddie",
+    selector: "#ac_HDDCaddie",
+    type: "autocomplete",
+  },
+  {
+    label: "Caddie Part Number",
+    id: "mi_caddiePartNumber",
+    selector: "#ac_CaddiePartNumber",
     type: "autocomplete",
   },
   {
@@ -991,39 +974,6 @@ const MASTER_ITEM_FIELDS = [
     id: "mi_erasureResults",
     selector: "#ac_Attribute_6090",
     type: "autocomplete",
-  },
-  {
-    label: "Final Grade",
-    id: "mi_finalGrade",
-    selector: "#ac_Attribute_6129",
-    type: "autocomplete",
-  },
-  {
-    label: "Pass or Fail",
-    id: "mi_passOrFail",
-    selector: "#ac_Attribute_6173",
-    type: "autocomplete",
-  },
-  {
-    label: "MODEL (attr)",
-    id: "mi_modelAttr",
-    selector: "#ac_Attribute_6178",
-    type: "autocomplete",
-  },
-  {
-    label: "MPN (attr)",
-    id: "mi_mpnAttr",
-    selector: "#ac_Attribute_6180",
-    type: "autocomplete",
-  },
-
-  // --- Checkboxes ---
-  { group: "Options" },
-  {
-    label: "Discontinued",
-    id: "mi_discontinued",
-    selector: "#cb_IsDiscontinued",
-    type: "checkbox",
   },
 ];
 

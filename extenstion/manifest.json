@@ -17,6 +17,12 @@
         "default": "Ctrl+Shift+F"
       },
       "description": "Fill form with saved template"
+    },
+    "fill-master-item": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M"
+      },
+      "description": "Fill master item with saved template"
     }
   }
 }
