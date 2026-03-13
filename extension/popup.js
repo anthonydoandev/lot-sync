@@ -104,7 +104,7 @@ const FIELDS = [
     label: "Category",
     id: "Category",
     selector: "#ac_Category",
-    categories: ["desktop", "laptop", "lcdDisplay"],
+    categories: [],
   },
   {
     label: "Notes",
@@ -199,12 +199,13 @@ const FIELDS = [
     showWhen: { field: "NextStep", value: "103" },
   },
 
-  // --- Hard Drive core fields ---
+  // --- Hard Drive / LCD core fields ---
   {
     label: "Asset Tag",
     id: "AssetTag",
     selector: 'input[name="AssetTag"]',
-    categories: ["hardDrive"],
+    categories: ["desktop", "laptop", "hardDrive", "lcdDisplay"],
+    skipIfFilled: true,
   },
 
   // --- Drive / Storage fields ---
@@ -443,10 +444,171 @@ const FIELDS = [
   },
 ];
 
+// Category-specific field ordering (by field id)
+const CATEGORY_FIELD_ORDER = {
+  desktop: [
+    "AssetTag",
+    "Weight",
+    "Condition",
+    "Location",
+    "Notes",
+    "PACKAGING",
+    "Description",
+    "FormFactor",
+    "CPUType",
+    "CPUSpeed",
+    "CPUCores",
+    "Memory",
+    "MemorySpeed",
+    "MemoryConfiguration",
+    "HDDQty",
+    "HardDriveModel",
+    "HardDriveSerial",
+    "HDDType",
+    "StorageMedium",
+    "HDDSize",
+    "HDDCaddie",
+    "HDDRemoved",
+    "ErasureMethod",
+    "ErasureResults",
+    "ErasureDate",
+    "DriveShredded",
+    "OpticalDrive",
+    "ExtPorts",
+    "NIC",
+    "VideoAdapter",
+    "WIFI",
+    "COA",
+    "PassorFail",
+    "Grade",
+    "FailReason",
+    "Repaired",
+    "FinalGrade",
+    "CPUTestResults",
+    "MemoryTestResults",
+    "MBTestResults",
+    "NextStep",
+    "Commodity",
+    "LotWorkflowSteps",
+  ],
+  laptop: [
+    "AssetTag",
+    "Weight",
+    "Condition",
+    "Location",
+    "Notes",
+    "PACKAGING",
+    "Description",
+    "FormFactor",
+    "CPUType",
+    "CPUSpeed",
+    "CPUCores",
+    "Memory",
+    "MemorySpeed",
+    "MemoryConfiguration",
+    "HDDQty",
+    "HardDriveModel",
+    "HardDriveSerial",
+    "HDDSize",
+    "HDDType",
+    "HDDCaddie",
+    "HDDRemoved",
+    "StorageMedium",
+    "ErasureMethod",
+    "ErasureResults",
+    "ErasureDate",
+    "DriveShredded",
+    "OpticalDrive",
+    "FingerprintSens",
+    "NIC",
+    "VideoAdapter",
+    "Webcam",
+    "WIFI",
+    "ExtPorts",
+    "BatteryType",
+    "BatteryLife",
+    "ScreenResolution",
+    "ScreenSize",
+    "TouchScreen",
+    "COA",
+    "PassorFail",
+    "Grade",
+    "FailReason",
+    "Repaired",
+    "FinalGrade",
+    "CPUTestResults",
+    "MemoryTestResults",
+    "MBTestResults",
+    "LCDTestResults",
+    "KBTestResults",
+    "NextStep",
+    "Commodity",
+    "LotWorkflowSteps",
+  ],
+  hardDrive: [
+    "AssetTag",
+    "Weight",
+    "Condition",
+    "Location",
+    "Notes",
+    "PACKAGING",
+    "Description",
+    "MPN",
+    "HDDSize",
+    "HDDType",
+    "HDDSpeed",
+    "FormFactor",
+    "HDDCaddie",
+    "CaddiePartNumber",
+    "HostSerial",
+    "ErasureMethod",
+    "ErasureResults",
+    "ErasureDate",
+    "DriveShredded",
+    "PassorFail",
+    "FailReason",
+    "FinalGrade",
+    "NextStep",
+    "Commodity",
+    "LotWorkflowSteps",
+  ],
+  lcdDisplay: [
+    "AssetTag",
+    "Weight",
+    "Condition",
+    "Location",
+    "Notes",
+    "PACKAGING",
+    "Description",
+    "ScreenSize",
+    "ScreenResolution",
+    "RefreshRate",
+    "TouchScreen",
+    "Color",
+    "WithStand",
+    "PassorFail",
+    "FailReason",
+    "Grade",
+    "Repaired",
+    "FinalGrade",
+    "LCDTestResults",
+    "NextStep",
+    "Commodity",
+    "LotWorkflowSteps",
+  ],
+};
+
 // Helper: filter FIELDS for a given category
 function getFieldsForCategory(category) {
-  return FIELDS.filter((f) => {
+  const filtered = FIELDS.filter((f) => {
     return f.categories.includes("all") || f.categories.includes(category);
+  });
+  const order = CATEGORY_FIELD_ORDER[category];
+  if (!order) return filtered;
+  return filtered.sort((a, b) => {
+    const ai = order.indexOf(a.id);
+    const bi = order.indexOf(b.id);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
   });
 }
 
@@ -1679,6 +1841,16 @@ async function fillAndSubmit(data, isPreset = false) {
           if (formData[field.id]) {
             const el = document.querySelector(field.selector);
             if (el) {
+              // Skip filling if field already has a value on the page and skipIfFilled is set
+              if (field.skipIfFilled && el.value && el.value.trim() !== "") {
+                results.push({
+                  field: field.id,
+                  success: true,
+                  value: el.value,
+                  skipped: true,
+                });
+                return;
+              }
               const value = formData[field.id];
               const hidden = el.nextElementSibling;
 
