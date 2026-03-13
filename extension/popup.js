@@ -16,7 +16,7 @@ const safeChrome =
 
 // ---- FIELD MAPPINGS ----
 // Each field has a `categories` array: which template categories it appears in.
-// "all" = desktop + laptop + hardDrive
+// "all" = desktop + laptop + hardDrive + lcdDisplay
 const FIELDS = [
   // --- Common fields (all categories) ---
   {
@@ -41,7 +41,7 @@ const FIELDS = [
     label: "Category",
     id: "Category",
     selector: "#ac_Category",
-    categories: ["desktop", "laptop"],
+    categories: ["desktop", "laptop", "lcdDisplay"],
   },
   {
     label: "Notes",
@@ -78,7 +78,7 @@ const FIELDS = [
     label: "Description",
     id: "Description",
     selector: "#ac_Description",
-    categories: ["desktop", "laptop"],
+    categories: ["desktop", "laptop", "lcdDisplay"],
   },
   {
     label: "Weight",
@@ -225,13 +225,13 @@ const FIELDS = [
     label: "Grade",
     id: "Grade",
     selector: "#ac_Grade",
-    categories: ["desktop", "laptop"],
+    categories: ["desktop", "laptop", "lcdDisplay"],
   },
   {
     label: "Repaired",
     id: "Repaired",
     selector: "#ac_Repaired",
-    categories: ["desktop", "laptop"],
+    categories: ["desktop", "laptop", "lcdDisplay"],
   },
   {
     label: "Final Grade",
@@ -339,19 +339,19 @@ const FIELDS = [
     label: "Screen Resolution",
     id: "ScreenResolution",
     selector: "#ac_ScreenResolution",
-    categories: ["laptop"],
+    categories: ["laptop", "lcdDisplay"],
   },
   {
     label: "Screen Size",
     id: "ScreenSize",
     selector: "#ac_ScreenSize",
-    categories: ["laptop"],
+    categories: ["laptop", "lcdDisplay"],
   },
   {
     label: "Touch Screen",
     id: "TouchScreen",
     selector: "#ac_TouchScreen",
-    categories: ["laptop"],
+    categories: ["laptop", "lcdDisplay"],
   },
   {
     label: "Fingerprint Sens",
@@ -383,13 +383,62 @@ const FIELDS = [
     label: "LCD Test Results",
     id: "LCDTestResults",
     selector: "#ac_LCDTestResults",
-    categories: ["laptop"],
+    categories: ["laptop", "lcdDisplay"],
   },
   {
     label: "KB Test Results",
     id: "KBTestResults",
     selector: "#ac_KBTestResults",
     categories: ["laptop"],
+  },
+
+  // --- LCD Display-only fields ---
+  {
+    label: "Refresh Rate",
+    id: "RefreshRate",
+    selector: "#ac_RefreshRate",
+    categories: ["lcdDisplay"],
+  },
+  {
+    label: "Color",
+    id: "Color",
+    selector: "#ac_Color",
+    categories: ["lcdDisplay"],
+  },
+  {
+    label: "With Stand",
+    id: "WithStand",
+    selector: "#ac_WithStand",
+    categories: ["lcdDisplay"],
+  },
+
+  // --- Scrap-conditional fields (shown when Next Step = Scrap) ---
+  {
+    label: "Commodity",
+    id: "Commodity",
+    selector: "#ac_Commodity",
+    categories: ["all"],
+    showWhen: { field: "NextStep", value: "103" },
+  },
+  {
+    label: "Workflow Step",
+    id: "LotWorkflowSteps",
+    selector: "#dd_LotWorkflowSteps",
+    isDropdown: true,
+    options: [
+      { label: "Sort", value: "1" },
+      { label: "Audit", value: "10" },
+      { label: "Testing", value: "5" },
+      { label: "Data Destruction", value: "3" },
+      { label: "Asset Recovery", value: "2" },
+      { label: "Consumed", value: "9" },
+      { label: "Final", value: "4" },
+      { label: "ITAD", value: "11" },
+      { label: "Processed", value: "8" },
+      { label: "Work in progress", value: "13" },
+    ],
+    categories: ["all"],
+    showWhen: { field: "NextStep", value: "103" },
   },
 ];
 
@@ -689,6 +738,13 @@ function buildPresetManagerFields(category, existingValues) {
     const row = document.createElement("div");
     row.className = "form-row";
 
+    // Hide conditional fields by default
+    if (field.showWhen) {
+      row.dataset.showWhenField = field.showWhen.field;
+      row.dataset.showWhenValue = field.showWhen.value;
+      row.style.display = "none";
+    }
+
     if (field.isDropdown && field.options) {
       const selectOptions = field.options
         .map((opt) => {
@@ -718,6 +774,15 @@ function buildPresetManagerFields(category, existingValues) {
       if (input) input.value = existingValues[field.id];
     }
   });
+
+  // Wire up conditional field visibility for preset manager
+  updateConditionalFields(container, "pm_");
+  const pmNextStep = document.getElementById("pm_NextStep");
+  if (pmNextStep) {
+    pmNextStep.addEventListener("change", () =>
+      updateConditionalFields(container, "pm_"),
+    );
+  }
 }
 
 async function savePresetFromManager() {
@@ -1333,12 +1398,23 @@ function buildForm(category) {
 
   filteredFields.forEach((field) => {
     // Skip Final Grade field for desktop/laptop (auto-filled from Grade)
-    if (field.id === "FinalGrade" && currentTemplateCategory !== "hardDrive") {
+    if (
+      field.id === "FinalGrade" &&
+      currentTemplateCategory !== "hardDrive" &&
+      currentTemplateCategory !== "lcdDisplay"
+    ) {
       return;
     }
 
     const row = document.createElement("div");
     row.className = "form-row";
+
+    // Hide conditional fields by default
+    if (field.showWhen) {
+      row.dataset.showWhenField = field.showWhen.field;
+      row.dataset.showWhenValue = field.showWhen.value;
+      row.style.display = "none";
+    }
 
     if (field.isDropdown && field.options) {
       const selectOptions = field.options
@@ -1371,6 +1447,32 @@ function buildForm(category) {
       if (input) input.value = savedValues[field.id];
     }
   });
+
+  // Wire up conditional field visibility
+  updateConditionalFields(container);
+  const nextStepSelect = document.getElementById("field_NextStep");
+  if (nextStepSelect) {
+    nextStepSelect.addEventListener("change", () =>
+      updateConditionalFields(container),
+    );
+  }
+}
+
+function updateConditionalFields(container, prefix) {
+  const idPrefix = prefix || "field_";
+  const conditionalRows = container.querySelectorAll("[data-show-when-field]");
+  conditionalRows.forEach((row) => {
+    const triggerFieldId = row.dataset.showWhenField;
+    const triggerValue = row.dataset.showWhenValue;
+    const triggerInput = document.getElementById(
+      `${idPrefix}${triggerFieldId}`,
+    );
+    if (triggerInput && triggerInput.value === triggerValue) {
+      row.style.display = "";
+    } else {
+      row.style.display = "none";
+    }
+  });
 }
 
 // ---- LOAD / SAVE ----
@@ -1392,6 +1494,9 @@ function fillFormInputs(data) {
     const input = document.getElementById(`field_${key}`);
     if (input) input.value = data[key] || "";
   });
+  // Update conditional fields after restoring values
+  const container = document.getElementById("form-fields");
+  if (container) updateConditionalFields(container);
 }
 
 // ---- EVENT LISTENERS ----
