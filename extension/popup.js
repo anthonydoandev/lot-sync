@@ -20,6 +20,69 @@ const safeChrome =
 const FIELDS = [
   // --- Common fields (all categories) ---
   {
+    label: "Packaging",
+    id: "PACKAGING",
+    selector: "#ac_PACKAGING",
+    isDropdown: true,
+    options: [
+      { label: "SINGLE", value: "SINGLE" },
+      { label: "BAG", value: "BAG" },
+      { label: "BOXED", value: "BOXED" },
+    ],
+    categories: ["all"],
+  },
+  {
+    label: "Description",
+    id: "Description",
+    selector: "#ac_Description",
+    categories: ["desktop", "laptop", "lcdDisplay"],
+  },
+
+  // --- Screen / Display fields (laptop + lcdDisplay) ---
+  {
+    label: "Screen Size",
+    id: "ScreenSize",
+    selector: "#ac_ScreenSize",
+    categories: ["laptop", "lcdDisplay"],
+  },
+  {
+    label: "Screen Resolution",
+    id: "ScreenResolution",
+    selector: "#ac_ScreenResolution",
+    categories: ["laptop", "lcdDisplay"],
+  },
+  {
+    label: "Refresh Rate",
+    id: "RefreshRate",
+    selector: "#ac_RefreshRate",
+    categories: ["lcdDisplay"],
+  },
+  {
+    label: "Touch Screen",
+    id: "TouchScreen",
+    selector: "#ac_TouchScreen",
+    categories: ["laptop", "lcdDisplay"],
+  },
+  {
+    label: "Color",
+    id: "Color",
+    selector: "#ac_Color",
+    categories: ["lcdDisplay"],
+  },
+  {
+    label: "With Stand",
+    id: "WithStand",
+    selector: "#ac_WithStand",
+    categories: ["lcdDisplay"],
+  },
+
+  {
+    label: "Weight",
+    id: "Weight",
+    selector: 'input[name="Weight"]',
+    categories: ["all"],
+  },
+  {
     label: "Condition",
     id: "Condition",
     selector: "#ac_Condition",
@@ -49,6 +112,52 @@ const FIELDS = [
     selector: 'textarea[name="Notes"]',
     categories: ["all"],
   },
+
+  // --- Grading / QC ---
+  {
+    label: "Pass or Fail",
+    id: "PassorFail",
+    selector: "#ac_PassorFail",
+    isDropdown: true,
+    options: [
+      { label: "PASS", value: "PASS" },
+      { label: "FAIL", value: "FAIL" },
+      { label: "N/A", value: "N/A" },
+    ],
+    categories: ["all"],
+  },
+  {
+    label: "Fail Reason",
+    id: "FailReason",
+    selector: "#ac_FailReason",
+    categories: ["all"],
+  },
+  {
+    label: "Grade",
+    id: "Grade",
+    selector: "#ac_Grade",
+    categories: ["desktop", "laptop", "lcdDisplay"],
+  },
+  {
+    label: "Repaired",
+    id: "Repaired",
+    selector: "#ac_Repaired",
+    categories: ["desktop", "laptop", "lcdDisplay"],
+  },
+  {
+    label: "Final Grade",
+    id: "FinalGrade",
+    selector: "#ac_FinalGrade",
+    categories: ["all"],
+  },
+  {
+    label: "LCD Test Results",
+    id: "LCDTestResults",
+    selector: "#ac_LCDTestResults",
+    categories: ["laptop", "lcdDisplay"],
+  },
+
+  // --- Next Step + Scrap-conditional fields ---
   {
     label: "Next Step",
     id: "NextStep",
@@ -63,31 +172,34 @@ const FIELDS = [
     categories: ["all"],
   },
   {
-    label: "Packaging",
-    id: "PACKAGING",
-    selector: "#ac_PACKAGING",
+    label: "Commodity",
+    id: "Commodity",
+    selector: "#ac_Commodity",
+    categories: ["all"],
+    showWhen: { field: "NextStep", value: "103" },
+  },
+  {
+    label: "Workflow Step",
+    id: "LotWorkflowSteps",
+    selector: "#dd_LotWorkflowSteps",
     isDropdown: true,
     options: [
-      { label: "SINGLE", value: "SINGLE" },
-      { label: "BAG", value: "BAG" },
-      { label: "BOXED", value: "BOXED" },
+      { label: "Sort", value: "1" },
+      { label: "Audit", value: "10" },
+      { label: "Testing", value: "5" },
+      { label: "Data Destruction", value: "3" },
+      { label: "Asset Recovery", value: "2" },
+      { label: "Consumed", value: "9" },
+      { label: "Final", value: "4" },
+      { label: "ITAD", value: "11" },
+      { label: "Processed", value: "8" },
+      { label: "Work in progress", value: "13" },
     ],
     categories: ["all"],
-  },
-  {
-    label: "Description",
-    id: "Description",
-    selector: "#ac_Description",
-    categories: ["desktop", "laptop", "lcdDisplay"],
-  },
-  {
-    label: "Weight",
-    id: "Weight",
-    selector: 'input[name="Weight"]',
-    categories: ["all"],
+    showWhen: { field: "NextStep", value: "103" },
   },
 
-  // --- Hard Drive core fields (only on hardDrive inventory detail page) ---
+  // --- Hard Drive core fields ---
   {
     label: "Asset Tag",
     id: "AssetTag",
@@ -100,7 +212,7 @@ const FIELDS = [
     label: "Form Factor",
     id: "FormFactor",
     selector: "#ac_HardDrive__FormFactor",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "MODEL",
@@ -113,13 +225,13 @@ const FIELDS = [
     label: "HDD Type",
     id: "HDDType",
     selector: "#ac_HDDType",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "HDD Size",
     id: "HDDSize",
     selector: "#ac_HDDSize",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "HDD Speed",
@@ -131,7 +243,7 @@ const FIELDS = [
     label: "HDD Caddie",
     id: "HDDCaddie",
     selector: "#ac_HDDCaddie",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "Caddie Part No",
@@ -176,68 +288,30 @@ const FIELDS = [
     categories: ["desktop", "laptop"],
   },
 
-  // --- Erasure fields ---
+  // --- Erasure fields (not for lcdDisplay) ---
   {
     label: "Erasure Method",
     id: "ErasureMethod",
     selector: "#ac_ErasureMethod",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "Erasure Results",
     id: "ErasureResults",
     selector: "#ac_ErasureResults",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "Erasure Date",
     id: "ErasureDate",
     selector: "#ac_ErasureDate",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
   {
     label: "Drive Shredded",
     id: "DriveShredded",
     selector: "#ac_DriveShredded",
-    categories: ["all"],
-  },
-
-  // --- Grading / QC ---
-  {
-    label: "Pass or Fail",
-    id: "PassorFail",
-    selector: "#ac_PassorFail",
-    isDropdown: true,
-    options: [
-      { label: "PASS", value: "PASS" },
-      { label: "FAIL", value: "FAIL" },
-      { label: "N/A", value: "N/A" },
-    ],
-    categories: ["all"],
-  },
-  {
-    label: "Fail Reason",
-    id: "FailReason",
-    selector: "#ac_FailReason",
-    categories: ["all"],
-  },
-  {
-    label: "Grade",
-    id: "Grade",
-    selector: "#ac_Grade",
-    categories: ["desktop", "laptop", "lcdDisplay"],
-  },
-  {
-    label: "Repaired",
-    id: "Repaired",
-    selector: "#ac_Repaired",
-    categories: ["desktop", "laptop", "lcdDisplay"],
-  },
-  {
-    label: "Final Grade",
-    id: "FinalGrade",
-    selector: "#ac_FinalGrade",
-    categories: ["all"],
+    categories: ["desktop", "laptop", "hardDrive"],
   },
 
   // --- System / CPU / Memory (desktop + laptop only) ---
@@ -336,24 +410,6 @@ const FIELDS = [
     categories: ["laptop"],
   },
   {
-    label: "Screen Resolution",
-    id: "ScreenResolution",
-    selector: "#ac_ScreenResolution",
-    categories: ["laptop", "lcdDisplay"],
-  },
-  {
-    label: "Screen Size",
-    id: "ScreenSize",
-    selector: "#ac_ScreenSize",
-    categories: ["laptop", "lcdDisplay"],
-  },
-  {
-    label: "Touch Screen",
-    id: "TouchScreen",
-    selector: "#ac_TouchScreen",
-    categories: ["laptop", "lcdDisplay"],
-  },
-  {
     label: "Fingerprint Sens",
     id: "FingerprintSens",
     selector: "#ac_FingerprintSens",
@@ -380,65 +436,10 @@ const FIELDS = [
     categories: ["desktop", "laptop"],
   },
   {
-    label: "LCD Test Results",
-    id: "LCDTestResults",
-    selector: "#ac_LCDTestResults",
-    categories: ["laptop", "lcdDisplay"],
-  },
-  {
     label: "KB Test Results",
     id: "KBTestResults",
     selector: "#ac_KBTestResults",
     categories: ["laptop"],
-  },
-
-  // --- LCD Display-only fields ---
-  {
-    label: "Refresh Rate",
-    id: "RefreshRate",
-    selector: "#ac_RefreshRate",
-    categories: ["lcdDisplay"],
-  },
-  {
-    label: "Color",
-    id: "Color",
-    selector: "#ac_Color",
-    categories: ["lcdDisplay"],
-  },
-  {
-    label: "With Stand",
-    id: "WithStand",
-    selector: "#ac_WithStand",
-    categories: ["lcdDisplay"],
-  },
-
-  // --- Scrap-conditional fields (shown when Next Step = Scrap) ---
-  {
-    label: "Commodity",
-    id: "Commodity",
-    selector: "#ac_Commodity",
-    categories: ["all"],
-    showWhen: { field: "NextStep", value: "103" },
-  },
-  {
-    label: "Workflow Step",
-    id: "LotWorkflowSteps",
-    selector: "#dd_LotWorkflowSteps",
-    isDropdown: true,
-    options: [
-      { label: "Sort", value: "1" },
-      { label: "Audit", value: "10" },
-      { label: "Testing", value: "5" },
-      { label: "Data Destruction", value: "3" },
-      { label: "Asset Recovery", value: "2" },
-      { label: "Consumed", value: "9" },
-      { label: "Final", value: "4" },
-      { label: "ITAD", value: "11" },
-      { label: "Processed", value: "8" },
-      { label: "Work in progress", value: "13" },
-    ],
-    categories: ["all"],
-    showWhen: { field: "NextStep", value: "103" },
   },
 ];
 
