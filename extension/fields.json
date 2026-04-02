@@ -87,5 +87,32 @@
     "HDDSpeed": { "selector": "#ac_HDDSpeed", "value": "" },
     "CaddiePartNumber": { "selector": "#ac_CaddiePartNumber", "value": "" },
     "HostSerial": { "selector": "#ac_HostSerial", "value": "" }
+  },
+  "cellular": {
+    "Description": { "selector": "#ac_Description", "value": "" },
+    "MPN": { "selector": "#ac_MPN", "value": "" },
+    "Type": { "selector": "#ac_Type", "value": "" },
+    "CPUType": { "selector": "#ac_CPUType", "value": "" },
+    "Memory": { "selector": "#ac_Memory", "value": "" },
+    "HasBattery": { "selector": "#ac_HasBattery", "value": "" },
+    "BatteryLife": { "selector": "#ac_BatteryLife", "value": "" },
+    "ScreenSize": { "selector": "#ac_ScreenSize", "value": "" },
+    "OS": { "selector": "#ac_OS", "value": "" },
+    "OSVersion": { "selector": "#ac_OSVersion", "value": "" },
+    "ServiceProvider": { "selector": "#ac_ServiceProvider", "value": "" },
+    "Color": { "selector": "#ac_Color", "value": "" },
+    "Cellular__Managed": { "selector": "#ac_Cellular__Managed", "value": "" },
+    "IMEI": { "selector": "#ac_IMEI", "value": "" },
+    "IMEI2": { "selector": "#ac_IMEI2", "value": "" },
+    "MEID": { "selector": "#ac_MEID", "value": "" },
+    "MEID2": { "selector": "#ac_MEID2", "value": "" },
+    "KNOX": { "selector": "#ac_KNOX", "value": "" },
+    "MDM": { "selector": "#ac_MDM", "value": "" },
+    "FactoryResetPerformed": { "selector": "#ac_FactoryResetPerformed", "value": "" },
+    "Grade": { "selector": "#ac_Grade", "value": "" },
+    "Repaired": { "selector": "#ac_Repaired", "value": "" },
+    "Rooted": { "selector": "#ac_Rooted", "value": "" },
+    "LCDTestResults": { "selector": "#ac_LCDTestResults", "value": "" },
+    "ErasureCertificateLink": { "selector": "#ac_ErasureCertificateLink", "value": "" }
   }
 }

@@ -143,6 +143,38 @@ const FIELDS = [
     id: "KBTestResults",
     selector: "#ac_KBTestResults",
   },
+  // Cellular-specific fields
+  { label: "Type", id: "Type", selector: "#ac_Type" },
+  { label: "Has Battery", id: "HasBattery", selector: "#ac_HasBattery" },
+  { label: "OS", id: "OS", selector: "#ac_OS" },
+  { label: "OS Version", id: "OSVersion", selector: "#ac_OSVersion" },
+  {
+    label: "Service Provider",
+    id: "ServiceProvider",
+    selector: "#ac_ServiceProvider",
+  },
+  {
+    label: "Managed",
+    id: "Cellular__Managed",
+    selector: "#ac_Cellular__Managed",
+  },
+  { label: "IMEI", id: "IMEI", selector: "#ac_IMEI" },
+  { label: "IMEI 2", id: "IMEI2", selector: "#ac_IMEI2" },
+  { label: "MEID", id: "MEID", selector: "#ac_MEID" },
+  { label: "MEID 2", id: "MEID2", selector: "#ac_MEID2" },
+  { label: "KNOX", id: "KNOX", selector: "#ac_KNOX" },
+  { label: "MDM", id: "MDM", selector: "#ac_MDM" },
+  {
+    label: "Factory Reset Performed",
+    id: "FactoryResetPerformed",
+    selector: "#ac_FactoryResetPerformed",
+  },
+  { label: "Rooted", id: "Rooted", selector: "#ac_Rooted" },
+  {
+    label: "Erasure Certificate Link",
+    id: "ErasureCertificateLink",
+    selector: "#ac_ErasureCertificateLink",
+  },
 ];
 
 // ---- MASTER ITEM FIELD MAPPINGS ----
