@@ -78,8 +78,8 @@ export const LAPTOP_DESCRIPTIONS = [
 ];
 
 export const AIO_DESCRIPTIONS = [
-  "5-7TH GEN",
-  "↑ 8TH GEN",
+  "B AIO",
+  "C AIO",
   "D/F",
   "OTHER",
 ];
@@ -136,7 +136,6 @@ export const getAutoGrade = (palletType: PalletType, desc: string): string | nul
   }
   if (palletType === "AIO") {
     if (desc === "D/F") return "D/F";
-    if (["5-7TH GEN", "↑ 8TH GEN"].includes(desc)) return "B/C";
   }
   if (palletType === "DISPLAYS") {
     if (desc === "B LCD") return "B";
