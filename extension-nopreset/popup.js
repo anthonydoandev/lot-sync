@@ -18,8 +18,6 @@ const safeChrome =
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
-  setupSettingsListeners();
-  loadSettings();
   setupAuthListeners();
   loadAuthState();
   setupCreateLotListeners();
@@ -36,77 +34,63 @@ function showStatus(message, isError = false) {
   setTimeout(() => status.classList.remove("show"), 3000);
 }
 
-// ---- SETTINGS MODULE ----
-function setupSettingsListeners() {
-  const toggle = document.getElementById("settingsToggle");
-  const saveBtn = document.getElementById("saveSettingsBtn");
-  if (toggle) {
-    toggle.addEventListener("click", () => {
-      const section = document.getElementById("settingsSection");
-      if (section) section.classList.toggle("show");
-    });
-  }
-  if (saveBtn) {
-    saveBtn.addEventListener("click", saveSettings);
-  }
+function deriveSiteUrl(cloudUrl) {
+  return cloudUrl.replace(/\.convex\.cloud$/, ".convex.site");
 }
 
-function loadSettings(callback) {
-  safeChrome.storage.local.get(["supabaseUrl", "supabaseAnonKey"], (result) => {
-    const urlInput = document.getElementById("supabaseUrl");
-    const keyInput = document.getElementById("supabaseAnonKey");
-    if (urlInput && result.supabaseUrl) urlInput.value = result.supabaseUrl;
-    if (keyInput && result.supabaseAnonKey)
-      keyInput.value = result.supabaseAnonKey;
-    if (callback) callback(result);
-  });
-}
-
-function saveSettings() {
-  const urlInput = document.getElementById("supabaseUrl");
-  const keyInput = document.getElementById("supabaseAnonKey");
-  if (!urlInput || !keyInput) return;
-
-  const url = urlInput.value.trim().replace(/\/+$/, "");
-  const key = keyInput.value.trim();
-
-  if (!url || !key) {
-    showStatus("Please fill in both Supabase URL and Anon Key", true);
-    return;
-  }
-
-  try {
-    new URL(url);
-  } catch {
-    showStatus("Invalid Supabase URL", true);
-    return;
-  }
-
-  safeChrome.storage.local.set(
-    { supabaseUrl: url, supabaseAnonKey: key },
-    () => {
-      urlInput.value = url;
-      const saved = document.getElementById("settingsSaved");
-      if (saved) {
-        saved.style.display = "inline";
-        setTimeout(() => (saved.style.display = "none"), 2000);
-      }
-    },
-  );
-}
-
+// ---- CONFIG (from config.js) ----
 function getSettings() {
-  return new Promise((resolve) => {
-    safeChrome.storage.local.get(
-      ["supabaseUrl", "supabaseAnonKey"],
-      (result) => {
-        resolve({
-          supabaseUrl: result.supabaseUrl || "",
-          anonKey: result.supabaseAnonKey || "",
-        });
-      },
-    );
+  const cfg =
+    (typeof window !== "undefined" && window.LOT_SYNC_CONFIG) || {};
+  const convexUrl = String(cfg.CONVEX_URL || "").trim().replace(/\/+$/, "");
+  if (!convexUrl || !/^https:\/\/[^/]+\.convex\.cloud$/.test(convexUrl)) {
+    return { convexUrl: "", convexSiteUrl: "" };
+  }
+  return { convexUrl, convexSiteUrl: deriveSiteUrl(convexUrl) };
+}
+
+// ---- CONVEX RPC ----
+async function convexSignIn(siteUrl, email, password) {
+  const res = await fetch(`${siteUrl}/api/auth/signIn`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider: "password",
+      params: { email, password, flow: "signIn" },
+      verifier: null,
+      refreshToken: null,
+    }),
   });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Sign-in failed (${res.status})`);
+  }
+  return res.json();
+}
+
+async function convexRefresh(siteUrl, refreshToken) {
+  const res = await fetch(`${siteUrl}/api/auth/signIn`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!res.ok) throw new Error("Refresh failed");
+  return res.json();
+}
+
+async function convexCall(kind, cloudUrl, path, args, token) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${cloudUrl}/api/${kind}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ path, args, format: "json" }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.status === "error") {
+    throw new Error(data.errorMessage || `Convex ${kind} failed`);
+  }
+  return data.value;
 }
 
 // ---- AUTH MODULE ----
@@ -126,13 +110,7 @@ function setupAuthListeners() {
 
 function loadAuthState() {
   safeChrome.storage.local.get(
-    [
-      "authAccessToken",
-      "authRefreshToken",
-      "authDisplayName",
-      "authUserId",
-      "authExpiresAt",
-    ],
+    ["authAccessToken", "authDisplayName"],
     (result) => {
       if (result.authAccessToken && result.authDisplayName) {
         updateAuthUI(true, result.authDisplayName);
@@ -162,6 +140,15 @@ function updateAuthUI(isLoggedIn, displayName) {
   }
 }
 
+function extractTokens(signInResult) {
+  const tokens = signInResult && signInResult.tokens;
+  if (!tokens) return null;
+  const accessToken = tokens.token || tokens.accessToken;
+  const refreshToken = tokens.refreshToken;
+  if (!accessToken) return null;
+  return { accessToken, refreshToken: refreshToken || null };
+}
+
 async function handleLogin() {
   const usernameInput = document.getElementById("authUsername");
   const passwordInput = document.getElementById("authPassword");
@@ -185,72 +172,37 @@ async function handleLogin() {
 
   const email = `${username.toLowerCase()}@lotsync.app`;
 
-  const { supabaseUrl, anonKey } = await getSettings();
-  if (!supabaseUrl || !anonKey) {
-    showStatus("Configure Supabase settings first", true);
+  const { convexUrl, convexSiteUrl } = await getSettings();
+  if (!convexUrl) {
+    showStatus("Configure Convex URL in settings first", true);
     return;
   }
 
   try {
-    const res = await fetch(
-      `${supabaseUrl}/auth/v1/token?grant_type=password`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: anonKey,
-        },
-        body: JSON.stringify({ email, password }),
-      },
-    );
+    const signInResult = await convexSignIn(convexSiteUrl, email, password);
+    const tokens = extractTokens(signInResult);
+    if (!tokens) throw new Error("Unexpected sign-in response");
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error_description || err.msg || "Login failed");
-    }
-
-    const data = await res.json();
-    const expiresAt = Date.now() + data.expires_in * 1000;
-
-    // Fetch user ID
-    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${data.access_token}`,
-      },
-    });
-
-    let userId = null;
+    // Look up display name via profiles:current
     let displayName = username;
-    if (userRes.ok) {
-      const userData = await userRes.json();
-      userId = userData.id;
-
-      // Fetch profile for display name
-      const profileRes = await fetch(
-        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=display_name`,
-        {
-          headers: {
-            apikey: anonKey,
-            Authorization: `Bearer ${data.access_token}`,
-          },
-        },
+    try {
+      const me = await convexCall(
+        "query",
+        convexUrl,
+        "profiles:current",
+        {},
+        tokens.accessToken,
       );
-      if (profileRes.ok) {
-        const profiles = await profileRes.json();
-        if (profiles.length > 0) {
-          displayName = profiles[0].display_name;
-        }
-      }
+      if (me && me.displayName) displayName = me.displayName;
+    } catch {
+      // Not fatal — fall back to username.
     }
 
     safeChrome.storage.local.set(
       {
-        authAccessToken: data.access_token,
-        authRefreshToken: data.refresh_token,
+        authAccessToken: tokens.accessToken,
+        authRefreshToken: tokens.refreshToken,
         authDisplayName: displayName,
-        authUserId: userId,
-        authExpiresAt: expiresAt,
       },
       () => {
         passwordInput.value = "";
@@ -266,13 +218,7 @@ async function handleLogin() {
 
 function handleLogout() {
   safeChrome.storage.local.remove(
-    [
-      "authAccessToken",
-      "authRefreshToken",
-      "authDisplayName",
-      "authUserId",
-      "authExpiresAt",
-    ],
+    ["authAccessToken", "authRefreshToken", "authDisplayName"],
     () => {
       updateAuthUI(false, null);
       showStatus("Logged out");
@@ -280,55 +226,37 @@ function handleLogout() {
   );
 }
 
-function getValidToken() {
+async function getValidToken() {
+  const { convexSiteUrl } = await getSettings();
   return new Promise((resolve) => {
     safeChrome.storage.local.get(
-      ["authAccessToken", "authRefreshToken", "authExpiresAt"],
+      ["authAccessToken", "authRefreshToken"],
       async (result) => {
         if (!result.authAccessToken) {
           resolve(null);
           return;
         }
-
-        // If token expires within 60 seconds, refresh it
-        if (result.authExpiresAt && Date.now() > result.authExpiresAt - 60000) {
+        // Try to refresh eagerly on each call if a refresh token is present.
+        // Convex JWTs are short-lived; if the access token works, the call
+        // succeeds and we never hit this path. If it fails, caller handles.
+        resolve(result.authAccessToken);
+        // Best-effort background refresh (non-blocking).
+        if (result.authRefreshToken && convexSiteUrl) {
           try {
-            const { supabaseUrl, anonKey } = await getSettings();
-            const res = await fetch(
-              `${supabaseUrl}/auth/v1/token?grant_type=refresh_token`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  apikey: anonKey,
-                },
-                body: JSON.stringify({
-                  refresh_token: result.authRefreshToken,
-                }),
-              },
+            const refreshed = await convexRefresh(
+              convexSiteUrl,
+              result.authRefreshToken,
             );
-
-            if (!res.ok) {
-              handleLogout();
-              resolve(null);
-              return;
+            const tokens = extractTokens(refreshed);
+            if (tokens) {
+              safeChrome.storage.local.set({
+                authAccessToken: tokens.accessToken,
+                authRefreshToken: tokens.refreshToken,
+              });
             }
-
-            const data = await res.json();
-            const expiresAt = Date.now() + data.expires_in * 1000;
-
-            safeChrome.storage.local.set({
-              authAccessToken: data.access_token,
-              authRefreshToken: data.refresh_token,
-              authExpiresAt: expiresAt,
-            });
-            resolve(data.access_token);
           } catch {
-            handleLogout();
-            resolve(null);
+            // ignore — token may still be valid
           }
-        } else {
-          resolve(result.authAccessToken);
         }
       },
     );
@@ -367,9 +295,9 @@ async function handleCreateLot() {
       return;
     }
 
-    const { supabaseUrl, anonKey } = await getSettings();
-    if (!supabaseUrl || !anonKey) {
-      showCreateLotStatus("Configure Supabase settings first", true);
+    const { convexUrl } = await getSettings();
+    if (!convexUrl) {
+      showCreateLotStatus("Configure Convex URL in settings first", true);
       return;
     }
 
@@ -393,7 +321,6 @@ async function handleCreateLot() {
         const header = document.querySelector("div.page-aside-header");
         const headerText = header ? header.textContent : "";
 
-        // Extract lot number
         const lotMatch = headerText.match(/Lot:\s*(\d+)/);
         let lotNumber = lotMatch ? lotMatch[1] : null;
         if (!lotNumber) {
@@ -401,14 +328,12 @@ async function handleCreateLot() {
           lotNumber = urlParams.get("lotId") || null;
         }
 
-        // Extract contents (text after "Lot: NNNN ")
         let contents = "UNKNOWN";
         const contentsMatch = headerText.match(/Lot:\s*\d+\s+(.+)/);
         if (contentsMatch) {
           contents = contentsMatch[1].trim();
         }
 
-        // Extract IO from first col-sm-7 in the audit form
         let io = null;
         const auditForm = document.querySelector("form.form-horizontal.audit");
         if (auditForm) {
@@ -436,103 +361,21 @@ async function handleCreateLot() {
 
     const sanitizedContents = (contents || "UNKNOWN").trim().slice(0, 500);
 
-    // Get user ID from storage
-    const userId = await new Promise((resolve) => {
-      safeChrome.storage.local.get(["authUserId"], (r) =>
-        resolve(r.authUserId),
-      );
-    });
+    if (btn) btn.textContent = "Saving lot...";
 
-    // Check if lot already exists
-    if (btn) btn.textContent = "Checking lot...";
-
-    const checkRes = await fetch(
-      `${supabaseUrl}/rest/v1/lots?lot_number=eq.${encodeURIComponent(lotNumber)}&select=id`,
+    const result = await convexCall(
+      "mutation",
+      convexUrl,
+      "lots:createOrJoin",
       {
-        headers: {
-          apikey: anonKey,
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    let lotId = null;
-    let isNewLot = false;
-
-    if (checkRes.ok) {
-      const existing = await checkRes.json();
-      if (existing.length > 0) {
-        // Lot exists - just join it
-        lotId = existing[0].id;
-      }
-    }
-
-    if (!lotId) {
-      // Insert new lot
-      if (btn) btn.textContent = "Creating lot...";
-
-      const body = {
         lot_number: lotNumber,
         contents: sanitizedContents,
-        is_retired: false,
-      };
-      if (io) body.io = io;
+        io: io || null,
+      },
+      token,
+    );
 
-      const insertRes = await fetch(`${supabaseUrl}/rest/v1/lots`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${token}`,
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!insertRes.ok) {
-        if (insertRes.status === 409) {
-          showCreateLotStatus(
-            `Lot ${lotNumber} already exists but could not be fetched`,
-            true,
-          );
-          return;
-        }
-        if (insertRes.status === 403) {
-          showCreateLotStatus("Permission denied", true);
-          return;
-        }
-        throw new Error("Failed to create lot");
-      }
-
-      const insertedRows = await insertRes.json();
-      if (insertedRows.length > 0) {
-        lotId = insertedRows[0].id;
-      }
-      isNewLot = true;
-    }
-
-    // Join the lot as a worker
-    if (lotId && userId) {
-      if (btn) btn.textContent = "Joining lot...";
-
-      const joinRes = await fetch(`${supabaseUrl}/rest/v1/lot_workers`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${token}`,
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify({ lot_id: lotId, user_id: userId }),
-      });
-
-      // 409 = already joined, that's fine
-      if (!joinRes.ok && joinRes.status !== 409) {
-        console.warn("Failed to join lot as worker:", joinRes.status);
-      }
-    }
-
-    if (isNewLot) {
+    if (result && result.isNewLot) {
       showCreateLotStatus(`Lot ${lotNumber} created & joined!`);
     } else {
       showCreateLotStatus(`Joined lot ${lotNumber}!`);

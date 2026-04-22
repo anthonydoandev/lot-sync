@@ -65,6 +65,51 @@ export const create = mutation({
   },
 });
 
+export const createOrJoin = mutation({
+  args: {
+    lot_number: v.string(),
+    contents: v.string(),
+    io: v.union(v.string(), v.null()),
+  },
+  handler: async (ctx, { lot_number, contents, io }) => {
+    const userId = await requireUser(ctx);
+
+    const existing = await ctx.db
+      .query("lots")
+      .withIndex("by_lot_number", (q) => q.eq("lot_number", lot_number))
+      .first();
+
+    let lotId;
+    let isNewLot;
+    if (existing) {
+      lotId = existing._id;
+      isNewLot = false;
+    } else {
+      lotId = await ctx.db.insert("lots", {
+        lot_number,
+        contents,
+        io,
+        is_retired: false,
+        created_at: new Date().toISOString(),
+        retired_at: null,
+      });
+      isNewLot = true;
+    }
+
+    const already = await ctx.db
+      .query("lot_workers")
+      .withIndex("by_lot_user", (q) =>
+        q.eq("lotId", lotId).eq("userId", userId),
+      )
+      .first();
+    if (!already) {
+      await ctx.db.insert("lot_workers", { lotId, userId });
+    }
+
+    return { lotId, isNewLot, lot_number };
+  },
+});
+
 export const update = mutation({
   args: {
     id: v.id("lots"),

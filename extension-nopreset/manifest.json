@@ -1,10 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Razor ERP Auto-Fill (Lite)",
-  "version": "1.0",
-  "description": "Create lots from Razor ERP pages",
+  "version": "1.1",
+  "description": "Scrape a Razor ERP page and create/join a lot in LotSync (Convex)",
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://secureitad.razorerp.com/*"],
+  "host_permissions": [
+    "https://secureitad.razorerp.com/*",
+    "https://*.convex.cloud/*",
+    "https://*.convex.site/*"
+  ],
   "action": {
     "default_popup": "popup.html"
   }
