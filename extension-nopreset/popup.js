@@ -34,50 +34,20 @@ function showStatus(message, isError = false) {
   setTimeout(() => status.classList.remove("show"), 3000);
 }
 
-function deriveSiteUrl(cloudUrl) {
-  return cloudUrl.replace(/\.convex\.cloud$/, ".convex.site");
-}
-
 // ---- CONFIG (from config.js) ----
 function getSettings() {
   const cfg =
     (typeof window !== "undefined" && window.LOT_SYNC_CONFIG) || {};
   const convexUrl = String(cfg.CONVEX_URL || "").trim().replace(/\/+$/, "");
   if (!convexUrl || !/^https:\/\/[^/]+\.convex\.cloud$/.test(convexUrl)) {
-    return { convexUrl: "", convexSiteUrl: "" };
+    return { convexUrl: "" };
   }
-  return { convexUrl, convexSiteUrl: deriveSiteUrl(convexUrl) };
+  return { convexUrl };
 }
 
 // ---- CONVEX RPC ----
-async function convexSignIn(siteUrl, email, password) {
-  const res = await fetch(`${siteUrl}/api/auth/signIn`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      provider: "password",
-      params: { email, password, flow: "signIn" },
-      verifier: null,
-      refreshToken: null,
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `Sign-in failed (${res.status})`);
-  }
-  return res.json();
-}
-
-async function convexRefresh(siteUrl, refreshToken) {
-  const res = await fetch(`${siteUrl}/api/auth/signIn`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
-  if (!res.ok) throw new Error("Refresh failed");
-  return res.json();
-}
-
+// Convex password auth flows through the `auth:signIn` *action*, not a custom
+// HTTP route. We invoke it via Convex's standard /api/action endpoint.
 async function convexCall(kind, cloudUrl, path, args, token) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -88,9 +58,22 @@ async function convexCall(kind, cloudUrl, path, args, token) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data.status === "error") {
-    throw new Error(data.errorMessage || `Convex ${kind} failed`);
+    throw new Error(
+      data.errorMessage || data.error || `Convex ${kind} failed (${res.status})`,
+    );
   }
   return data.value;
+}
+
+async function convexSignIn(cloudUrl, email, password) {
+  return convexCall("action", cloudUrl, "auth:signIn", {
+    provider: "password",
+    params: { email, password, flow: "signIn" },
+  });
+}
+
+async function convexRefresh(cloudUrl, refreshToken) {
+  return convexCall("action", cloudUrl, "auth:signIn", { refreshToken });
 }
 
 // ---- AUTH MODULE ----
@@ -172,14 +155,14 @@ async function handleLogin() {
 
   const email = `${username.toLowerCase()}@lotsync.app`;
 
-  const { convexUrl, convexSiteUrl } = await getSettings();
+  const { convexUrl } = await getSettings();
   if (!convexUrl) {
     showStatus("Configure Convex URL in settings first", true);
     return;
   }
 
   try {
-    const signInResult = await convexSignIn(convexSiteUrl, email, password);
+    const signInResult = await convexSignIn(convexUrl, email, password);
     const tokens = extractTokens(signInResult);
     if (!tokens) throw new Error("Unexpected sign-in response");
 
@@ -227,7 +210,7 @@ function handleLogout() {
 }
 
 async function getValidToken() {
-  const { convexSiteUrl } = await getSettings();
+  const { convexUrl } = await getSettings();
   return new Promise((resolve) => {
     safeChrome.storage.local.get(
       ["authAccessToken", "authRefreshToken"],
@@ -236,15 +219,11 @@ async function getValidToken() {
           resolve(null);
           return;
         }
-        // Try to refresh eagerly on each call if a refresh token is present.
-        // Convex JWTs are short-lived; if the access token works, the call
-        // succeeds and we never hit this path. If it fails, caller handles.
         resolve(result.authAccessToken);
-        // Best-effort background refresh (non-blocking).
-        if (result.authRefreshToken && convexSiteUrl) {
+        if (result.authRefreshToken && convexUrl) {
           try {
             const refreshed = await convexRefresh(
-              convexSiteUrl,
+              convexUrl,
               result.authRefreshToken,
             );
             const tokens = extractTokens(refreshed);
